@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build:static": "cp node_modules/htmx.org/dist/htmx.min.js src/orchamp_web/static/"
+  },
+  "dependencies": {
+    "htmx.org": "^2.0.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10"
+  }
+}

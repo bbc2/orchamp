@@ -1,0 +1,36 @@
+{
+  "teams": [
+    {"id": "alpha", "name": "Alpha TTC"},
+    {"id": "beta", "name": "Beta Ping"},
+    {"id": "gamma", "name": "Gamma Smash"},
+    {"id": "delta", "name": "Delta Spin"}
+  ],
+  "completed_matches": [
+    {
+      "home": "alpha",
+      "away": "beta",
+      "home_score": 19,
+      "away_score": 11,
+      "result": "home_win"
+    },
+    {
+      "home": "alpha",
+      "away": "gamma",
+      "home_score": 15,
+      "away_score": 15,
+      "result": "draw"
+    },
+    {
+      "home": "beta",
+      "away": "gamma",
+      "home_score": 12,
+      "away_score": 18,
+      "result": "away_win"
+    }
+  ],
+  "remaining_matches": [
+    {"home": "alpha", "away": "delta"},
+    {"home": "beta", "away": "delta"},
+    {"home": "gamma", "away": "delta"}
+  ]
+}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Orchamp - Table Tennis Standings{% endblock %}
+
+{% block content %}
+<h1>Orchamp</h1>
+<p>Table tennis championship standings with tiebreaker rules.</p>
+
+<h2>Available Leagues</h2>
+<ul>
+{% for key, league in leagues.items() %}
+    <li><a href="/web/{{ key }}/">{{ league.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{ league.name }} - Orchamp{% endblock %}
+
+{% block content %}
+<p><a href="/">← All leagues</a></p>
+
+<div class="header">
+    <div>
+        <h1>{{ league.name }}</h1>
+        <a class="source-link" href="{{ league.url }}" target="_blank">Source data ↗</a>
+    </div>
+    <button 
+        class="refresh-btn"
+        hx-get="/web/{{ league_key }}/standings-table"
+        hx-target="#standings-table"
+        hx-swap="innerHTML"
+    >
+        Refresh
+    </button>
+</div>
+
+<div id="standings-table">
+    {% include "partials/standings_table.html" %}
+</div>
+{% endblock %}

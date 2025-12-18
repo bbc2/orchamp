@@ -1,0 +1,14 @@
+{
+  "teams": [
+    {"id": "A", "name": "Team A"},
+    {"id": "B", "name": "Team B"},
+    {"id": "C", "name": "Team C"}
+  ],
+  "completed_matches": [
+    {"home": "A", "away": "B", "result": "home_win"},
+    {"home": "B", "away": "A", "result": "away_win"},
+    {"home": "A", "away": "C", "result": "home_win"},
+    {"home": "C", "away": "A", "result": "away_win"}
+  ],
+  "remaining_matches": [{"home": "B", "away": "C"}]
+}
