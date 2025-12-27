@@ -6,10 +6,11 @@ readme = "README.md"
 authors = [
     { name = "Bertrand Bonnefoy-Claudet", email = "bertrand@bertrandbc.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "beautifulsoup4>=4.14",
     "fastapi>=0.115",
+    "gunicorn>=23.0.0",
     "httpx>=0.28",
     "jinja2>=3.1",
     "ortools>=9.11",

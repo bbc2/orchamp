@@ -4,6 +4,7 @@ Business logic for fetching pages and computing standings.
 
 import asyncio
 import json
+import logging
 
 import httpx
 
@@ -17,6 +18,8 @@ from orchamp_web.cache import (
     compute_hash,
 )
 from orchamp_web.config import DEFAULT_RULES, AppConfig, LeagueConfig
+
+logger = logging.getLogger(__name__)
 
 
 class StandingsService:
@@ -42,6 +45,7 @@ class StandingsService:
         """
 
         response = await self._http_client.get(url)
+        logger.debug(f"Fetched {url} (status: {response.status_code})")
         response.raise_for_status()
         return response.content
 
@@ -92,7 +96,7 @@ class StandingsService:
         if obj is not None:
             return state_hash, json.loads(obj.value.decode("utf-8"))
 
-        # CPU-bound: run in thread pool to not block event loop
+        # Run in thread pool to avoid blocking event loop.
         state_dict = await asyncio.to_thread(parse_html, page_bytes.decode("utf-8"))
         state_bytes = json.dumps(state_dict).encode("utf-8")
 
@@ -115,6 +119,7 @@ class StandingsService:
         rankings_hash = compute_hash(rankings_key)
 
         obj = self._content.get(rankings_hash)
+
         if obj is not None:
             data = json.loads(obj.value.decode("utf-8"))
             return [
@@ -129,7 +134,8 @@ class StandingsService:
 
         state = ChampionshipState.from_dict(state_dict)
         rules = Rules.from_dict(DEFAULT_RULES)
-        # CPU-bound: run in thread pool to not block event loop
+
+        # Run in thread pool to avoid blocking event loop.
         rankings = await asyncio.to_thread(compute_rankings, state, rules)
 
         rankings_data = [
@@ -150,11 +156,10 @@ class StandingsService:
     async def get_standings(self, league_key: str) -> list[RankedTeam]:
         """
         Get standings for a league.
-
-        Fetches page, parses state, and computes rankings with caching at each step.
         """
 
         league = self._config.leagues.get(league_key)
+
         if league is None:
             raise ValueError(f"Unknown league: {league_key}")
 
@@ -170,6 +175,8 @@ class StandingsService:
         """
 
         league = self._config.leagues.get(league_key)
+
         if league is None:
             raise ValueError(f"Unknown league: {league_key}")
+
         return league

@@ -57,4 +57,19 @@ update-snapshots:
 # Run the dev server
 run:
     bun run build:static
-    ORCHAMP_CONFIG=_local/config.toml uvicorn orchamp_web.app:app --reload
+    env \
+        ORCHAMP_CONFIG=_local/config.toml \
+        ORCHAMP_LOG_LEVEL=DEBUG \
+        uvicorn --factory --reload orchamp_web.app:create
+
+# Build the Docker image
+docker-build:
+    docker build --tag orchamp:latest --file docker/orchamp.dockerfile .
+
+# Build and run the Docker image
+docker-run: docker-build
+    docker run --rm --publish 8080:8080 orchamp:latest
+
+# Deploy the application
+deploy: docker-build
+    flyctl deploy --local-only
