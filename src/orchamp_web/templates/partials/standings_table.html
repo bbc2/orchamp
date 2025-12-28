@@ -10,7 +10,9 @@
         {% for team in standings %}
         <tr>
             <td class="text-center">{{ team.position }}</td>
-            <td>{{ team.team_name }}</td>
+            <td>
+                <a href="/web/{{ league_key }}/team/{{ team.team_id }}/" class="team-link">{{ team.team_name }}</a>
+            </td>
             <td class="text-right">{{ team.points }}</td>
         </tr>
         {% endfor %}

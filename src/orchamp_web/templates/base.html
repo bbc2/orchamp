@@ -98,6 +98,67 @@
             color: var(--fg);
             opacity: 0.7;
         }
+        .team-link {
+            color: var(--accent);
+            cursor: pointer;
+        }
+        .team-link:hover {
+            text-decoration: underline;
+        }
+        .subtitle {
+            margin: 0;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        .analysis-summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .position-card {
+            background: var(--row-alt);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .position-label {
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }
+        .position-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .scenarios {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .scenario h2 {
+            margin-top: 0;
+        }
+        .scenario h3 {
+            font-size: 1rem;
+            margin: 1.5rem 0 0.5rem;
+        }
+        .highlighted {
+            background: color-mix(in srgb, var(--accent) 15%, transparent) !important;
+        }
+        .winner {
+            font-weight: 600;
+        }
+        .no-matches {
+            opacity: 0.7;
+            font-style: italic;
+        }
+        .htmx-request .refresh-btn {
+            opacity: 0.5;
+            cursor: wait;
+        }
     </style>
 </head>
 <body>

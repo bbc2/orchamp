@@ -147,3 +147,39 @@ def index(
         name="index.html",
         context={"leagues": config.leagues},
     )
+
+
+@router.get("/web/{league_key}/team/{team_id}/", response_class=HTMLResponse)
+async def web_team_analysis(
+    request: Request,
+    league_key: str,
+    team_id: str,
+    config: Annotated[AppConfig, Depends(get_config)],
+    service: Annotated[StandingsService, Depends(get_service)],
+    templates: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> HTMLResponse:
+    """
+    Render team analysis page.
+    """
+
+    if league_key not in config.leagues:
+        raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
+
+    analysis = await service.get_team_analysis(league_key, team_id)
+    league = service.get_league_info(league_key)
+    standings = await service.get_standings(league_key)
+
+    if analysis is None:
+        raise HTTPException(status_code=404, detail=f"Unknown team: {team_id}")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="team_analysis.html",
+        context={
+            "league_key": league_key,
+            "league": league,
+            "team_id": team_id,
+            "analysis": analysis,
+            "standings": standings,
+        },
+    )
