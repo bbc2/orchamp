@@ -15,7 +15,6 @@ from orchamp.analyzer import Analyzer
 from orchamp.models import ChampionshipState, Rules, Scenario
 from orchamp.ranking import RankedTeam, compute_rankings
 from orchamp.solvers.cpsat import CpSatSolver
-from orchamp_get.parser import parse_html
 from orchamp_web.cache import (
     ContentStore,
     RootStore,
@@ -23,6 +22,7 @@ from orchamp_web.cache import (
     compute_hash,
 )
 from orchamp_web.config import DEFAULT_RULES, AppConfig, LeagueConfig
+from orchamp_web.sources import get_data_source
 
 logger = logging.getLogger(__name__)
 
@@ -86,30 +86,6 @@ class CacheableComputation(Protocol[T]):
         """
 
         ...
-
-
-@dataclass(frozen=True)
-class ParseStateComputation:
-    """
-    Computation for parsing HTML into championship state.
-    """
-
-    _page: Cached[bytes]
-
-    def cache_key(self) -> str:
-        return f"state:{self._page.hash}"
-
-    def refs(self) -> list[str]:
-        return [self._page.hash]
-
-    async def compute(self) -> dict:
-        return await asyncio.to_thread(parse_html, self._page.value.decode("utf-8"))
-
-    def serialize(self, value: dict) -> bytes:
-        return json.dumps(value).encode("utf-8")
-
-    def deserialize(self, data: bytes) -> dict:
-        return json.loads(data.decode("utf-8"))
 
 
 @dataclass(frozen=True)
@@ -410,33 +386,37 @@ class StandingsService:
         )
         return Cached(hash=cache_hash, value=value)
 
-    async def _fetch_page(self, url: str) -> bytes:
-        response = await self._http_client.get(url)
-        logger.debug(f"External request to {url} (status: {response.status_code})")
-        response.raise_for_status()  # Issue: We need better error handling.
-        return response.content
-
-    async def _get_or_fetch_page(
+    async def _get_or_fetch_state(
         self, league_key: str, league: LeagueConfig
-    ) -> Cached[bytes]:
-        root_key = f"page:{league_key}"
+    ) -> Cached[dict]:
+        """
+        Fetch championship state using the appropriate data source.
+
+        Caches the state dict with TTL-based expiration.
+        """
+
+        root_key = f"state:{league_key}"
         entry = self._roots.get(root_key)
 
         if entry is not None:
             obj = self._content.get(entry.content_hash)
-
             if obj is not None:
-                return Cached(hash=entry.content_hash, value=obj.value)
+                state_dict = json.loads(obj.value.decode("utf-8"))
+                return Cached(hash=entry.content_hash, value=state_dict)
 
-        page_bytes = await self._fetch_page(league.url)
-        page_hash = compute_hash(page_bytes)
+        # Fetch fresh state using the configured data source
+        source = get_data_source(league.source)
+        state_dict = await source.fetch_state(league.url, self._http_client)
 
-        self._content.put(page_hash, page_bytes, refs=[])
-        self._roots.set(root_key, page_hash, ttl=self._config.page_ttl_seconds)
+        # Cache the state
+        serialized = json.dumps(state_dict).encode("utf-8")
+        state_hash = compute_hash(serialized)
+        self._content.put(state_hash, serialized, refs=[])
+        self._roots.set(root_key, state_hash, ttl=self._config.page_ttl_seconds)
 
         collect_garbage(self._roots, self._content)
 
-        return Cached(hash=page_hash, value=page_bytes)
+        return Cached(hash=state_hash, value=state_dict)
 
     async def get_standings(self, league_key: str) -> list[RankedTeam]:
         """
@@ -448,8 +428,7 @@ class StandingsService:
         if league is None:
             raise ValueError(f"Unknown league: {league_key}")
 
-        page = await self._get_or_fetch_page(league_key, league)
-        state = await self._resolve(ParseStateComputation(page))
+        state = await self._get_or_fetch_state(league_key, league)
         rankings = await self._resolve(ComputeRankingsComputation(state))
 
         return rankings.value
@@ -478,8 +457,7 @@ class StandingsService:
         if league is None:
             raise ValueError(f"Unknown league: {league_key}")
 
-        page = await self._get_or_fetch_page(league_key, league)
-        state = await self._resolve(ParseStateComputation(page))
+        state = await self._get_or_fetch_state(league_key, league)
         analysis = await self._resolve(AnalyzeTeamComputation(state, team_id))
 
         return analysis.value

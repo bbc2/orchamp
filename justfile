@@ -56,9 +56,14 @@ update-snapshots:
 
 # Run the dev server
 run:
+    #!/usr/bin/env bash
+    set -e
     bun run build:static
+    python -m http.server 8081 --directory tests &>/dev/null &
+    HTTP_PID=$!
+    trap "kill $HTTP_PID 2>/dev/null" EXIT
     env \
-        ORCHAMP_CONFIG=_local/config.toml \
+        ORCHAMP_CONFIG=tests/orchamp_web/data/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
         uvicorn --factory --reload orchamp_web.app:create
 

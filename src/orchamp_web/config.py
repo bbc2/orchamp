@@ -4,7 +4,17 @@ Configuration for leagues and app settings.
 
 import tomllib
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
+
+
+class SourceType(Enum):
+    """
+    Type of data source for fetching championship state.
+    """
+
+    CLASSEMENT = "classement"
+    JSON = "json"
 
 
 @dataclass(frozen=True)
@@ -13,6 +23,7 @@ class LeagueConfig:
     Configuration for a league.
     """
 
+    source: SourceType
     url: str
     name: str
 
@@ -33,7 +44,11 @@ class AppConfig:
             data = tomllib.load(f)
 
         leagues = {
-            key: LeagueConfig(url=value["url"], name=value["name"])
+            key: LeagueConfig(
+                url=value["url"],
+                name=value["name"],
+                source=SourceType(value["source"]),
+            )
             for key, value in data["leagues"].items()
         }
 

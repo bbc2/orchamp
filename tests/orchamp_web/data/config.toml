@@ -1,0 +1,18 @@
+# Local development config using fixture data served from a local HTTP server.
+#
+# Usage:
+#   1. Start the fixture server from the tests directory:
+#      cd tests && python -m http.server 8081
+#
+#   2. Run the web app:
+#      ORCHAMP_CONFIG=_local/config_local.toml uvicorn orchamp_web.app:create --factory --port 8080
+
+[leagues."small"]
+source = "json"
+url = "http://localhost:8081/orchamp/cli/data/small_league.json"
+name = "Small League (JSON Fixture)"
+
+[leagues."standings"]
+source = "classement"
+url = "http://localhost:8081/orchamp_get/data/standings.html"
+name = "Standings (HTML Fixture)"
