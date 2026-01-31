@@ -124,24 +124,24 @@ class CpSatSolver:
 
         for match in state.remaining_matches:
             match_vars[match] = {
-                MatchResult.HOME_WIN: model.NewBoolVar(
+                MatchResult.HOME_WIN: model.new_bool_var(
                     f"{match.home}_vs_{match.away}_home"
                 ),
-                MatchResult.DRAW: model.NewBoolVar(
+                MatchResult.DRAW: model.new_bool_var(
                     f"{match.home}_vs_{match.away}_draw"
                 ),
-                MatchResult.AWAY_WIN: model.NewBoolVar(
+                MatchResult.AWAY_WIN: model.new_bool_var(
                     f"{match.home}_vs_{match.away}_away"
                 ),
-                MatchResult.HOME_FORFEIT: model.NewBoolVar(
+                MatchResult.HOME_FORFEIT: model.new_bool_var(
                     f"{match.home}_vs_{match.away}_home_forfeit"
                 ),
-                MatchResult.AWAY_FORFEIT: model.NewBoolVar(
+                MatchResult.AWAY_FORFEIT: model.new_bool_var(
                     f"{match.home}_vs_{match.away}_away_forfeit"
                 ),
             }
             # Exactly one outcome per match
-            model.AddExactlyOne(list(match_vars[match].values()))
+            model.add_exactly_one(list(match_vars[match].values()))
 
         # Team points calculation
         max_matches = len(state.teams) - 1  # Max matches per team in round-robin
@@ -211,18 +211,18 @@ class CpSatSolver:
                         )
                     )
 
-            team_points[team.id] = model.NewIntVar(
+            team_points[team.id] = model.new_int_var(
                 0, base_points + max_points, f"points_{team.id}"
             )
 
             if point_contributions:
-                model.Add(
+                model.add(
                     team_points[team.id]
                     == base_points
                     + sum(var * coef for var, coef in point_contributions)
                 )
             else:
-                model.Add(team_points[team.id] == base_points)
+                model.add(team_points[team.id] == base_points)
 
         return match_vars, team_points
 
@@ -324,8 +324,10 @@ class CpSatSolver:
         # Position variables
         team_positions: dict[str, cp_model.IntVar] = {}
         for team in state.teams:
-            team_positions[team.id] = model.NewIntVar(1, n_teams, f"position_{team.id}")
-        model.AddAllDifferent(list(team_positions.values()))
+            team_positions[team.id] = model.new_int_var(
+                1, n_teams, f"position_{team.id}"
+            )
+        model.add_all_different(list(team_positions.values()))
 
         max_match_points = max(
             rules.win_points,
@@ -363,23 +365,25 @@ class CpSatSolver:
                     h2h_points[t1][t2] = pts
                 else:
                     # Variable based on remaining match outcome
-                    pts_var = model.NewIntVar(0, max_match_points, f"h2h_{t1}_vs_{t2}")
+                    pts_var = model.new_int_var(
+                        0, max_match_points, f"h2h_{t1}_vs_{t2}"
+                    )
                     contributions = []
                     for result, var in match_vars[match].items():
                         pts = self._points_for_team_in_match(
                             is_home=t1_is_home, result=result, rules=rules
                         )
                         contributions.append((var, pts))
-                    model.Add(pts_var == sum(var * coef for var, coef in contributions))
+                    model.add(pts_var == sum(var * coef for var, coef in contributions))
                     h2h_points[t1][t2] = pts_var
 
         # Step 2: For each pair, compute is_tied (equal total points)
         is_tied: dict[str, dict[str, cp_model.IntVar]] = {t: {} for t in team_ids}
         for i, t1 in enumerate(team_ids):
             for t2 in team_ids[i + 1 :]:
-                b = model.NewBoolVar(f"tied_{t1}_{t2}")
-                model.Add(team_points[t1] == team_points[t2]).OnlyEnforceIf(b)
-                model.Add(team_points[t1] != team_points[t2]).OnlyEnforceIf(b.Not())
+                b = model.new_bool_var(f"tied_{t1}_{t2}")
+                model.add(team_points[t1] == team_points[t2]).OnlyEnforceIf(b)
+                model.add(team_points[t1] != team_points[t2]).OnlyEnforceIf(b.Not())
                 is_tied[t1][t2] = b
                 is_tied[t2][t1] = b
 
@@ -403,12 +407,12 @@ class CpSatSolver:
                     contributions.append((tied, h2h))
                 else:
                     # Variable h2h * BoolVar tied - need intermediate variable
-                    prod = model.NewIntVar(0, max_match_points, f"prod_{t1}_{t2}")
-                    model.AddMultiplicationEquality(prod, [h2h, tied])
+                    prod = model.new_int_var(0, max_match_points, f"prod_{t1}_{t2}")
+                    model.add_multiplication_equality(prod, [h2h, tied])
                     contributions.append((prod, 1))
 
-            mini = model.NewIntVar(0, max_mini, f"mini_league_{t1}")
-            model.Add(mini == sum(var * coef for var, coef in contributions))
+            mini = model.new_int_var(0, max_mini, f"mini_league_{t1}")
+            model.add(mini == sum(var * coef for var, coef in contributions))
             mini_league_points[t1] = mini
 
         # Step 3b: Compute game points won/lost in mini-league for each pair
@@ -460,11 +464,11 @@ class CpSatSolver:
                 won_contributions.append((tied, gw))
                 lost_contributions.append((tied, gl))
 
-            mini_won = model.NewIntVar(0, max_mini_game, f"mini_game_won_{t1}")
-            mini_lost = model.NewIntVar(0, max_mini_game, f"mini_game_lost_{t1}")
+            mini_won = model.new_int_var(0, max_mini_game, f"mini_game_won_{t1}")
+            mini_lost = model.new_int_var(0, max_mini_game, f"mini_game_lost_{t1}")
 
-            model.Add(mini_won == sum(var * coef for var, coef in won_contributions))
-            model.Add(mini_lost == sum(var * coef for var, coef in lost_contributions))
+            model.add(mini_won == sum(var * coef for var, coef in won_contributions))
+            model.add(mini_lost == sum(var * coef for var, coef in lost_contributions))
 
             mini_game_won[t1] = mini_won
             mini_game_lost[t1] = mini_lost
@@ -506,17 +510,17 @@ class CpSatSolver:
             }
             for idx, t1 in enumerate(team_ids):
                 for t2 in team_ids[idx + 1 :]:
-                    b_same_mini = model.NewBoolVar(f"same_mini_L{level}_{t1}_{t2}")
-                    model.Add(prev_mini[t1] == prev_mini[t2]).OnlyEnforceIf(b_same_mini)
-                    model.Add(prev_mini[t1] != prev_mini[t2]).OnlyEnforceIf(
+                    b_same_mini = model.new_bool_var(f"same_mini_L{level}_{t1}_{t2}")
+                    model.add(prev_mini[t1] == prev_mini[t2]).OnlyEnforceIf(b_same_mini)
+                    model.add(prev_mini[t1] != prev_mini[t2]).OnlyEnforceIf(
                         b_same_mini.Not()
                     )
 
-                    b_tied_mini = model.NewBoolVar(f"tied_mini_L{level}_{t1}_{t2}")
-                    model.AddBoolAnd([prev_tied[t1][t2], b_same_mini]).OnlyEnforceIf(
+                    b_tied_mini = model.new_bool_var(f"tied_mini_L{level}_{t1}_{t2}")
+                    model.add_bool_and([prev_tied[t1][t2], b_same_mini]).OnlyEnforceIf(
                         b_tied_mini
                     )
-                    model.AddBoolOr(
+                    model.add_bool_or(
                         [prev_tied[t1][t2].Not(), b_same_mini.Not()]
                     ).OnlyEnforceIf(b_tied_mini.Not())
 
@@ -530,29 +534,29 @@ class CpSatSolver:
             }
             for idx, t1 in enumerate(team_ids):
                 for t2 in team_ids[idx + 1 :]:
-                    cross_t1 = model.NewIntVar(
+                    cross_t1 = model.new_int_var(
                         0, max_mini_game * max_mini_game, f"cross_L{level}_{t1}_{t2}"
                     )
-                    model.AddMultiplicationEquality(
+                    model.add_multiplication_equality(
                         cross_t1, [prev_won[t1], prev_lost[t2]]
                     )
 
-                    cross_t2 = model.NewIntVar(
+                    cross_t2 = model.new_int_var(
                         0, max_mini_game * max_mini_game, f"cross_L{level}_{t2}_{t1}"
                     )
-                    model.AddMultiplicationEquality(
+                    model.add_multiplication_equality(
                         cross_t2, [prev_won[t2], prev_lost[t1]]
                     )
 
-                    b_same_quotient = model.NewBoolVar(f"same_gpq_L{level}_{t1}_{t2}")
-                    model.Add(cross_t1 == cross_t2).OnlyEnforceIf(b_same_quotient)
-                    model.Add(cross_t1 != cross_t2).OnlyEnforceIf(b_same_quotient.Not())
+                    b_same_quotient = model.new_bool_var(f"same_gpq_L{level}_{t1}_{t2}")
+                    model.add(cross_t1 == cross_t2).OnlyEnforceIf(b_same_quotient)
+                    model.add(cross_t1 != cross_t2).OnlyEnforceIf(b_same_quotient.Not())
 
-                    b_tied_quotient = model.NewBoolVar(f"tied_gpq_L{level}_{t1}_{t2}")
-                    model.AddBoolAnd(
+                    b_tied_quotient = model.new_bool_var(f"tied_gpq_L{level}_{t1}_{t2}")
+                    model.add_bool_and(
                         [is_tied_mini_level[t1][t2], b_same_quotient]
                     ).OnlyEnforceIf(b_tied_quotient)
-                    model.AddBoolOr(
+                    model.add_bool_or(
                         [is_tied_mini_level[t1][t2].Not(), b_same_quotient.Not()]
                     ).OnlyEnforceIf(b_tied_quotient.Not())
 
@@ -574,14 +578,14 @@ class CpSatSolver:
                     if isinstance(h2h, int):
                         contributions.append((tied_q, h2h))
                     else:
-                        prod = model.NewIntVar(
+                        prod = model.new_int_var(
                             0, max_match_points, f"prod_L{level}_{t1}_{t2}"
                         )
-                        model.AddMultiplicationEquality(prod, [h2h, tied_q])
+                        model.add_multiplication_equality(prod, [h2h, tied_q])
                         contributions.append((prod, 1))
 
-                sub_mini = model.NewIntVar(0, max_mini, f"sub_mini_L{level}_{t1}")
-                model.Add(sub_mini == sum(var * coef for var, coef in contributions))
+                sub_mini = model.new_int_var(0, max_mini, f"sub_mini_L{level}_{t1}")
+                model.add(sub_mini == sum(var * coef for var, coef in contributions))
                 sub_mini_points[t1] = sub_mini
 
             level_mini_points.append(sub_mini_points)
@@ -601,10 +605,12 @@ class CpSatSolver:
                     won_contributions.append((tied_q, gw))
                     lost_contributions.append((tied_q, gl))
 
-                sub_won = model.NewIntVar(0, max_mini_game, f"sub_won_L{level}_{t1}")
-                sub_lost = model.NewIntVar(0, max_mini_game, f"sub_lost_L{level}_{t1}")
-                model.Add(sub_won == sum(var * coef for var, coef in won_contributions))
-                model.Add(
+                sub_won = model.new_int_var(0, max_mini_game, f"sub_won_L{level}_{t1}")
+                sub_lost = model.new_int_var(
+                    0, max_mini_game, f"sub_lost_L{level}_{t1}"
+                )
+                model.add(sub_won == sum(var * coef for var, coef in won_contributions))
+                model.add(
                     sub_lost == sum(var * coef for var, coef in lost_contributions)
                 )
                 sub_game_won[t1] = sub_won
@@ -617,25 +623,25 @@ class CpSatSolver:
         for i, t1 in enumerate(team_ids):
             for t2 in team_ids[i + 1 :]:
                 # If t1 has more total points, t1 ranks higher
-                b_t1_better_pts = model.NewBoolVar(f"{t1}_more_pts_{t2}")
-                model.Add(team_points[t1] > team_points[t2]).OnlyEnforceIf(
+                b_t1_better_pts = model.new_bool_var(f"{t1}_more_pts_{t2}")
+                model.add(team_points[t1] > team_points[t2]).OnlyEnforceIf(
                     b_t1_better_pts
                 )
-                model.Add(team_points[t1] <= team_points[t2]).OnlyEnforceIf(
+                model.add(team_points[t1] <= team_points[t2]).OnlyEnforceIf(
                     b_t1_better_pts.Not()
                 )
-                model.Add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
+                model.add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
                     b_t1_better_pts
                 )
 
-                b_t2_better_pts = model.NewBoolVar(f"{t2}_more_pts_{t1}")
-                model.Add(team_points[t2] > team_points[t1]).OnlyEnforceIf(
+                b_t2_better_pts = model.new_bool_var(f"{t2}_more_pts_{t1}")
+                model.add(team_points[t2] > team_points[t1]).OnlyEnforceIf(
                     b_t2_better_pts
                 )
-                model.Add(team_points[t2] <= team_points[t1]).OnlyEnforceIf(
+                model.add(team_points[t2] <= team_points[t1]).OnlyEnforceIf(
                     b_t2_better_pts.Not()
                 )
-                model.Add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
+                model.add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
                     b_t2_better_pts
                 )
 
@@ -648,118 +654,128 @@ class CpSatSolver:
                     game_lost = level_game_lost[level]
 
                     # t1 has more mini-league points at this level
-                    b_t1_better_mini = model.NewBoolVar(f"{t1}_more_mini_L{level}_{t2}")
-                    model.Add(mini_pts[t1] > mini_pts[t2]).OnlyEnforceIf(
+                    b_t1_better_mini = model.new_bool_var(
+                        f"{t1}_more_mini_L{level}_{t2}"
+                    )
+                    model.add(mini_pts[t1] > mini_pts[t2]).OnlyEnforceIf(
                         b_t1_better_mini
                     )
-                    model.Add(mini_pts[t1] <= mini_pts[t2]).OnlyEnforceIf(
+                    model.add(mini_pts[t1] <= mini_pts[t2]).OnlyEnforceIf(
                         b_t1_better_mini.Not()
                     )
 
-                    b_tied_and_t1_better = model.NewBoolVar(
+                    b_tied_and_t1_better = model.new_bool_var(
                         f"tied_and_{t1}_better_mini_L{level}_{t2}"
                     )
-                    model.AddBoolAnd([prev_tied_cond, b_t1_better_mini]).OnlyEnforceIf(
-                        b_tied_and_t1_better
-                    )
-                    model.AddBoolOr(
+                    model.add_bool_and(
+                        [prev_tied_cond, b_t1_better_mini]
+                    ).OnlyEnforceIf(b_tied_and_t1_better)
+                    model.add_bool_or(
                         [prev_tied_cond.Not(), b_t1_better_mini.Not()]
                     ).OnlyEnforceIf(b_tied_and_t1_better.Not())
-                    model.Add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
+                    model.add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
                         b_tied_and_t1_better
                     )
 
                     # t2 has more mini-league points at this level
-                    b_t2_better_mini = model.NewBoolVar(f"{t2}_more_mini_L{level}_{t1}")
-                    model.Add(mini_pts[t2] > mini_pts[t1]).OnlyEnforceIf(
+                    b_t2_better_mini = model.new_bool_var(
+                        f"{t2}_more_mini_L{level}_{t1}"
+                    )
+                    model.add(mini_pts[t2] > mini_pts[t1]).OnlyEnforceIf(
                         b_t2_better_mini
                     )
-                    model.Add(mini_pts[t2] <= mini_pts[t1]).OnlyEnforceIf(
+                    model.add(mini_pts[t2] <= mini_pts[t1]).OnlyEnforceIf(
                         b_t2_better_mini.Not()
                     )
 
-                    b_tied_and_t2_better = model.NewBoolVar(
+                    b_tied_and_t2_better = model.new_bool_var(
                         f"tied_and_{t2}_better_mini_L{level}_{t1}"
                     )
-                    model.AddBoolAnd([prev_tied_cond, b_t2_better_mini]).OnlyEnforceIf(
-                        b_tied_and_t2_better
-                    )
-                    model.AddBoolOr(
+                    model.add_bool_and(
+                        [prev_tied_cond, b_t2_better_mini]
+                    ).OnlyEnforceIf(b_tied_and_t2_better)
+                    model.add_bool_or(
                         [prev_tied_cond.Not(), b_t2_better_mini.Not()]
                     ).OnlyEnforceIf(b_tied_and_t2_better.Not())
-                    model.Add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
+                    model.add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
                         b_tied_and_t2_better
                     )
 
                     # Tied on mini-league points, check quotient
-                    b_tied_mini = model.NewBoolVar(f"tied_mini_L{level}_{t1}_{t2}_cmp")
-                    model.Add(mini_pts[t1] == mini_pts[t2]).OnlyEnforceIf(b_tied_mini)
-                    model.Add(mini_pts[t1] != mini_pts[t2]).OnlyEnforceIf(
+                    b_tied_mini = model.new_bool_var(
+                        f"tied_mini_L{level}_{t1}_{t2}_cmp"
+                    )
+                    model.add(mini_pts[t1] == mini_pts[t2]).OnlyEnforceIf(b_tied_mini)
+                    model.add(mini_pts[t1] != mini_pts[t2]).OnlyEnforceIf(
                         b_tied_mini.Not()
                     )
 
-                    b_tied_through_mini = model.NewBoolVar(
+                    b_tied_through_mini = model.new_bool_var(
                         f"tied_through_mini_L{level}_{t1}_{t2}"
                     )
-                    model.AddBoolAnd([prev_tied_cond, b_tied_mini]).OnlyEnforceIf(
+                    model.add_bool_and([prev_tied_cond, b_tied_mini]).OnlyEnforceIf(
                         b_tied_through_mini
                     )
-                    model.AddBoolOr(
+                    model.add_bool_or(
                         [prev_tied_cond.Not(), b_tied_mini.Not()]
                     ).OnlyEnforceIf(b_tied_through_mini.Not())
 
                     # Cross-products for game point quotient
-                    cross_t1 = model.NewIntVar(
+                    cross_t1 = model.new_int_var(
                         0,
                         max_mini_game * max_mini_game,
                         f"cross_cmp_L{level}_{t1}_{t2}",
                     )
-                    model.AddMultiplicationEquality(
+                    model.add_multiplication_equality(
                         cross_t1, [game_won[t1], game_lost[t2]]
                     )
 
-                    cross_t2 = model.NewIntVar(
+                    cross_t2 = model.new_int_var(
                         0,
                         max_mini_game * max_mini_game,
                         f"cross_cmp_L{level}_{t2}_{t1}",
                     )
-                    model.AddMultiplicationEquality(
+                    model.add_multiplication_equality(
                         cross_t2, [game_won[t2], game_lost[t1]]
                     )
 
                     # t1 has better quotient
-                    b_t1_better_gpq = model.NewBoolVar(f"{t1}_better_gpq_L{level}_{t2}")
-                    model.Add(cross_t1 > cross_t2).OnlyEnforceIf(b_t1_better_gpq)
-                    model.Add(cross_t1 <= cross_t2).OnlyEnforceIf(b_t1_better_gpq.Not())
+                    b_t1_better_gpq = model.new_bool_var(
+                        f"{t1}_better_gpq_L{level}_{t2}"
+                    )
+                    model.add(cross_t1 > cross_t2).OnlyEnforceIf(b_t1_better_gpq)
+                    model.add(cross_t1 <= cross_t2).OnlyEnforceIf(b_t1_better_gpq.Not())
 
-                    b_tied_mini_and_t1_gpq = model.NewBoolVar(
+                    b_tied_mini_and_t1_gpq = model.new_bool_var(
                         f"tied_mini_and_{t1}_gpq_L{level}_{t2}"
                     )
-                    model.AddBoolAnd(
+                    model.add_bool_and(
                         [b_tied_through_mini, b_t1_better_gpq]
                     ).OnlyEnforceIf(b_tied_mini_and_t1_gpq)
-                    model.AddBoolOr(
+                    model.add_bool_or(
                         [b_tied_through_mini.Not(), b_t1_better_gpq.Not()]
                     ).OnlyEnforceIf(b_tied_mini_and_t1_gpq.Not())
-                    model.Add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
+                    model.add(team_positions[t1] < team_positions[t2]).OnlyEnforceIf(
                         b_tied_mini_and_t1_gpq
                     )
 
                     # t2 has better quotient
-                    b_t2_better_gpq = model.NewBoolVar(f"{t2}_better_gpq_L{level}_{t1}")
-                    model.Add(cross_t2 > cross_t1).OnlyEnforceIf(b_t2_better_gpq)
-                    model.Add(cross_t2 <= cross_t1).OnlyEnforceIf(b_t2_better_gpq.Not())
+                    b_t2_better_gpq = model.new_bool_var(
+                        f"{t2}_better_gpq_L{level}_{t1}"
+                    )
+                    model.add(cross_t2 > cross_t1).OnlyEnforceIf(b_t2_better_gpq)
+                    model.add(cross_t2 <= cross_t1).OnlyEnforceIf(b_t2_better_gpq.Not())
 
-                    b_tied_mini_and_t2_gpq = model.NewBoolVar(
+                    b_tied_mini_and_t2_gpq = model.new_bool_var(
                         f"tied_mini_and_{t2}_gpq_L{level}_{t1}"
                     )
-                    model.AddBoolAnd(
+                    model.add_bool_and(
                         [b_tied_through_mini, b_t2_better_gpq]
                     ).OnlyEnforceIf(b_tied_mini_and_t2_gpq)
-                    model.AddBoolOr(
+                    model.add_bool_or(
                         [b_tied_through_mini.Not(), b_t2_better_gpq.Not()]
                     ).OnlyEnforceIf(b_tied_mini_and_t2_gpq.Not())
-                    model.Add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
+                    model.add(team_positions[t2] < team_positions[t1]).OnlyEnforceIf(
                         b_tied_mini_and_t2_gpq
                     )
 
@@ -786,21 +802,21 @@ class CpSatSolver:
             if isinstance(constraint, TeamPositionConstraint):
                 pos = team_positions[constraint.team_id]
                 if constraint.min_position:
-                    model.Add(pos >= constraint.min_position)
+                    model.add(pos >= constraint.min_position)
                 if constraint.max_position:
-                    model.Add(pos <= constraint.max_position)
+                    model.add(pos <= constraint.max_position)
 
             elif isinstance(constraint, MatchResultConstraint):
                 if constraint.match in match_vars:
-                    model.Add(match_vars[constraint.match][constraint.result] == 1)
+                    model.add(match_vars[constraint.match][constraint.result] == 1)
 
             elif isinstance(constraint, TeamMinPointsConstraint):
-                model.Add(team_points[constraint.team_id] >= constraint.min_points)
+                model.add(team_points[constraint.team_id] >= constraint.min_points)
 
             elif isinstance(constraint, NoForfeitConstraint):
                 for outcomes in match_vars.values():
-                    model.Add(outcomes[MatchResult.HOME_FORFEIT] == 0)
-                    model.Add(outcomes[MatchResult.AWAY_FORFEIT] == 0)
+                    model.add(outcomes[MatchResult.HOME_FORFEIT] == 0)
+                    model.add(outcomes[MatchResult.AWAY_FORFEIT] == 0)
 
             else:
                 raise ValueError(f"Unknown constraint type: {type(constraint)}")
@@ -884,10 +900,10 @@ class CpSatSolver:
         if team_id and optimize_position:
             if optimize_position == "best":
                 # Minimize position (1 is best)
-                model.Minimize(team_positions[team_id])
+                model.minimize(team_positions[team_id])
             elif optimize_position == "worst":
                 # Maximize position
-                model.Maximize(team_positions[team_id])
+                model.maximize(team_positions[team_id])
 
         # Solve
         solver = self._create_solver()
