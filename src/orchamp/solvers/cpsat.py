@@ -296,9 +296,9 @@ class CpSatSolver:
 
         score = completed.score
         if match.home == team_id:
-            return (score.home_points, score.away_points)
+            return (score.home_score, score.away_score)
         else:
-            return (score.away_points, score.home_points)
+            return (score.away_score, score.home_score)
 
     def _add_position_variables(
         self,

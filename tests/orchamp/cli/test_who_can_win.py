@@ -9,7 +9,7 @@ class TestWhoCanWin:
 
         assert result == snapshot(
             {
-                "possible_winners": ["alpha", "beta", "gamma", "delta"],
+                "possible_winners": ["alpha", "gamma", "delta"],
                 "example_scenarios": {
                     "alpha": {
                         "standings": [
@@ -17,7 +17,7 @@ class TestWhoCanWin:
                                 "position": 1,
                                 "team_id": "alpha",
                                 "team_name": "Alpha TTC",
-                                "points": 5,
+                                "points": 8,
                             },
                             {
                                 "position": 2,
@@ -35,57 +35,16 @@ class TestWhoCanWin:
                                 "position": 4,
                                 "team_id": "delta",
                                 "team_name": "Delta Spin",
-                                "points": 4,
+                                "points": 3,
                             },
                         ],
                         "match_results": [
                             {
                                 "home": "alpha",
                                 "away": "delta",
-                                "result": "home_forfeit",
+                                "result": "home_win",
                             },
                             {"home": "beta", "away": "delta", "result": "away_forfeit"},
-                            {
-                                "home": "gamma",
-                                "away": "delta",
-                                "result": "home_forfeit",
-                            },
-                        ],
-                    },
-                    "beta": {
-                        "standings": [
-                            {
-                                "position": 1,
-                                "team_id": "beta",
-                                "team_name": "Beta Ping",
-                                "points": 5,
-                            },
-                            {
-                                "position": 2,
-                                "team_id": "gamma",
-                                "team_name": "Gamma Smash",
-                                "points": 5,
-                            },
-                            {
-                                "position": 3,
-                                "team_id": "alpha",
-                                "team_name": "Alpha TTC",
-                                "points": 5,
-                            },
-                            {
-                                "position": 4,
-                                "team_id": "delta",
-                                "team_name": "Delta Spin",
-                                "points": 5,
-                            },
-                        ],
-                        "match_results": [
-                            {
-                                "home": "alpha",
-                                "away": "delta",
-                                "result": "home_forfeit",
-                            },
-                            {"home": "beta", "away": "delta", "result": "home_win"},
                             {
                                 "home": "gamma",
                                 "away": "delta",
@@ -136,34 +95,34 @@ class TestWhoCanWin:
                                 "position": 1,
                                 "team_id": "delta",
                                 "team_name": "Delta Spin",
-                                "points": 7,
+                                "points": 6,
                             },
                             {
                                 "position": 2,
-                                "team_id": "alpha",
-                                "team_name": "Alpha TTC",
-                                "points": 7,
-                            },
-                            {
-                                "position": 3,
                                 "team_id": "gamma",
                                 "team_name": "Gamma Smash",
                                 "points": 6,
                             },
                             {
+                                "position": 3,
+                                "team_id": "alpha",
+                                "team_name": "Alpha TTC",
+                                "points": 5,
+                            },
+                            {
                                 "position": 4,
                                 "team_id": "beta",
                                 "team_name": "Beta Ping",
-                                "points": 4,
+                                "points": 5,
                             },
                         ],
                         "match_results": [
                             {
                                 "home": "alpha",
                                 "away": "delta",
-                                "result": "draw",
+                                "result": "home_forfeit",
                             },
-                            {"home": "beta", "away": "delta", "result": "draw"},
+                            {"home": "beta", "away": "delta", "result": "home_win"},
                             {
                                 "home": "gamma",
                                 "away": "delta",

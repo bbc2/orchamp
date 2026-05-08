@@ -94,6 +94,7 @@ async def web_standings(
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
     standings = await service.get_standings(league_key)
+    rounds = await service.get_rounds(league_key)
     league = service.get_league_info(league_key)
 
     return templates.TemplateResponse(
@@ -103,6 +104,7 @@ async def web_standings(
             "league_key": league_key,
             "league": league,
             "standings": standings,
+            "rounds": rounds,
         },
     )
 

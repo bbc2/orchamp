@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
             --border: #e5e7eb;
             --row-alt: #f3f4f6;
         }
+
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #1a1a1a;
@@ -22,7 +24,11 @@
                 --row-alt: #252525;
             }
         }
-        * { box-sizing: border-box; }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -31,44 +37,57 @@
             padding: 1rem;
             line-height: 1.5;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             font-weight: 600;
             margin: 0 0 1rem;
         }
+
         a {
             color: var(--accent);
             text-decoration: none;
         }
+
         a:hover {
             text-decoration: underline;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
         }
-        th, td {
+
+        th,
+        td {
             padding: 0.75rem 1rem;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
+
         th {
             font-weight: 600;
             background: var(--row-alt);
         }
+
         tr:nth-child(even) td {
             background: var(--row-alt);
         }
+
         .text-right {
             text-align: right;
         }
+
         .text-center {
             text-align: center;
         }
+
         .refresh-btn {
             background: var(--accent);
             color: white;
@@ -78,13 +97,16 @@
             cursor: pointer;
             font-size: 0.875rem;
         }
+
         .refresh-btn:hover {
             opacity: 0.9;
         }
+
         .htmx-request .refresh-btn {
             opacity: 0.5;
             cursor: wait;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -93,28 +115,34 @@
             gap: 1rem;
             margin-bottom: 1rem;
         }
+
         .source-link {
             font-size: 0.875rem;
             color: var(--fg);
             opacity: 0.7;
         }
+
         .team-link {
             color: var(--accent);
             cursor: pointer;
         }
+
         .team-link:hover {
             text-decoration: underline;
         }
+
         .subtitle {
             margin: 0;
             opacity: 0.7;
             font-size: 0.9rem;
         }
+
         .analysis-summary {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
         }
+
         .position-card {
             background: var(--row-alt);
             border: 1px solid var(--border);
@@ -124,46 +152,101 @@
             flex-direction: column;
             align-items: center;
         }
+
         .position-label {
             font-size: 0.875rem;
             opacity: 0.7;
         }
+
         .position-value {
             font-size: 2rem;
             font-weight: 700;
         }
+
         .scenarios {
             display: flex;
             flex-direction: column;
             gap: 2rem;
             margin-top: 2rem;
         }
+
         .scenario h2 {
             margin-top: 0;
         }
+
         .scenario h3 {
             font-size: 1rem;
             margin: 1.5rem 0 0.5rem;
         }
+
         .highlighted {
             background: color-mix(in srgb, var(--accent) 15%, transparent) !important;
         }
+
         .winner {
             font-weight: 600;
         }
+
         .no-matches {
             opacity: 0.7;
             font-style: italic;
         }
+
         .htmx-request .refresh-btn {
             opacity: 0.5;
             cursor: wait;
         }
+
+        .schedule-table .col-round {
+            font-weight: 600;
+            white-space: nowrap;
+            width: 4rem;
+        }
+
+        .schedule-table .col-date {
+            white-space: nowrap;
+            width: 7rem;
+            opacity: 0.6;
+            font-size: 0.875rem;
+        }
+
+        .schedule-table .col-home {
+            text-align: right;
+        }
+
+        .schedule-table .col-score-home {
+            text-align: right;
+            width: 2.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .schedule-table .col-sep {
+            text-align: center;
+            width: 1rem;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        .schedule-table .col-score-away {
+            text-align: left;
+            width: 2.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .schedule-table .col-away {
+            text-align: left;
+        }
+
+        .schedule-table .match-pending td {
+            opacity: 0.5;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         {% block content %}{% endblock %}
     </div>
 </body>
+
 </html>

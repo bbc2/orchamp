@@ -21,7 +21,7 @@ class TestAnalyzeTeam:
                             "position": 1,
                             "team_id": "delta",
                             "team_name": "Delta Spin",
-                            "points": 6,
+                            "points": 8,
                         },
                         {
                             "position": 2,
@@ -39,12 +39,12 @@ class TestAnalyzeTeam:
                             "position": 4,
                             "team_id": "beta",
                             "team_name": "Beta Ping",
-                            "points": 5,
+                            "points": 3,
                         },
                     ],
                     "match_results": [
                         {"home": "alpha", "away": "delta", "result": "home_forfeit"},
-                        {"home": "beta", "away": "delta", "result": "home_win"},
+                        {"home": "beta", "away": "delta", "result": "away_win"},
                         {"home": "gamma", "away": "delta", "result": "away_win"},
                     ],
                 },
@@ -52,15 +52,15 @@ class TestAnalyzeTeam:
                     "standings": [
                         {
                             "position": 1,
-                            "team_id": "alpha",
-                            "team_name": "Alpha TTC",
-                            "points": 8,
-                        },
-                        {
-                            "position": 2,
                             "team_id": "gamma",
                             "team_name": "Gamma Smash",
                             "points": 7,
+                        },
+                        {
+                            "position": 2,
+                            "team_id": "alpha",
+                            "team_name": "Alpha TTC",
+                            "points": 5,
                         },
                         {
                             "position": 3,
@@ -72,13 +72,13 @@ class TestAnalyzeTeam:
                             "position": 4,
                             "team_id": "delta",
                             "team_name": "Delta Spin",
-                            "points": 3,
+                            "points": 4,
                         },
                     ],
                     "match_results": [
-                        {"home": "alpha", "away": "delta", "result": "home_win"},
-                        {"home": "beta", "away": "delta", "result": "away_forfeit"},
-                        {"home": "gamma", "away": "delta", "result": "draw"},
+                        {"home": "alpha", "away": "delta", "result": "home_forfeit"},
+                        {"home": "beta", "away": "delta", "result": "draw"},
+                        {"home": "gamma", "away": "delta", "result": "away_forfeit"},
                     ],
                 },
             }

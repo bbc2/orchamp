@@ -48,14 +48,14 @@ class MatchScore:
     The sum is typically 30 but can be less in case of forfeits.
     """
 
-    home_points: int  # 0-20
-    away_points: int  # 0-20
+    home_score: int  # 0-20
+    away_score: int  # 0-20
 
     def __post_init__(self) -> None:
-        if not (0 <= self.home_points <= 20):
-            raise ValueError(f"home_points must be 0-20, got {self.home_points}")
-        if not (0 <= self.away_points <= 20):
-            raise ValueError(f"away_points must be 0-20, got {self.away_points}")
+        if not (0 <= self.home_score <= 20):
+            raise ValueError(f"home_score must be 0-20, got {self.home_score}")
+        if not (0 <= self.away_score <= 20):
+            raise ValueError(f"away_score must be 0-20, got {self.away_score}")
 
     def result(self) -> MatchResult:
         """
@@ -65,9 +65,9 @@ class MatchScore:
         Forfeit detection would require additional context.
         """
 
-        if self.home_points > self.away_points:
+        if self.home_score > self.away_score:
             return MatchResult.HOME_WIN
-        elif self.home_points < self.away_points:
+        elif self.home_score < self.away_score:
             return MatchResult.AWAY_WIN
         else:
             return MatchResult.DRAW
@@ -81,6 +81,17 @@ class CompletedMatch:
 
     result: MatchResult
     score: MatchScore | None = None
+
+
+@dataclass(frozen=True)
+class Round:
+    """
+    A round in the championship schedule.
+    """
+
+    name: str  # e.g. "R01"
+    date: str | None  # ISO date, e.g. "2025-10-16"
+    matches: list["Match"]
 
 
 @dataclass(frozen=True)
@@ -115,6 +126,7 @@ class ChampionshipState:
     teams: list[Team]
     completed_matches: dict[Match, CompletedMatch] = field(default_factory=dict)
     remaining_matches: list[Match] = field(default_factory=list)
+    rounds: list[Round] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -125,10 +137,10 @@ class ChampionshipState:
             match = Match(home=m["home"], away=m["away"])
             result = MatchResult(m["result"])
             score = None
-            if "home_points" in m and "away_points" in m:
+            if "home_score" in m and "away_score" in m:
                 score = MatchScore(
-                    home_points=m["home_points"],
-                    away_points=m["away_points"],
+                    home_score=m["home_score"],
+                    away_score=m["away_score"],
                 )
             completed[match] = CompletedMatch(result=result, score=score)
 
@@ -136,10 +148,20 @@ class ChampionshipState:
         for m in data.get("remaining_matches", []):
             remaining.append(Match(home=m["home"], away=m["away"]))
 
+        rounds = []
+        for r in data.get("rounds", []):
+            round_matches = [
+                Match(home=m["home"], away=m["away"]) for m in r["matches"]
+            ]
+            rounds.append(
+                Round(name=r["name"], date=r.get("date"), matches=round_matches)
+            )
+
         return cls(
             teams=teams,
             completed_matches=completed,
             remaining_matches=remaining,
+            rounds=rounds,
         )
 
     def team_by_id(self, team_id: str) -> Team:

@@ -32,5 +32,28 @@
     {"home": "alpha", "away": "delta"},
     {"home": "beta", "away": "delta"},
     {"home": "gamma", "away": "delta"}
+  ],
+  "rounds": [
+    {
+      "name": "R01",
+      "date": "2025-10-01",
+      "matches": [
+        {"home": "alpha", "away": "beta", "home_score": 19, "away_score": 11, "result": "home_win"},
+        {"home": "beta", "away": "gamma", "home_score": 12, "away_score": 18, "result": "away_win"}
+      ]
+    },
+    {
+      "name": "R02",
+      "date": "2025-11-01",
+      "matches": [
+        {"home": "alpha", "away": "gamma", "home_score": 15, "away_score": 15, "result": "draw"},
+        {"home": "gamma", "away": "delta"}
+      ]
+    },
+    {
+      "name": "R03",
+      "date": "2025-12-01",
+      "matches": [{"home": "alpha", "away": "delta"}, {"home": "beta", "away": "delta"}]
+    }
   ]
 }

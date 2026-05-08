@@ -133,11 +133,33 @@ class ComputeRankingsComputation:
 
 
 @dataclass(frozen=True)
-class ScenarioMatch:
+class RoundMatchDisplay:
     """
-    A match result in a scenario for display purposes.
+    A match within a round, enriched with team names and score info.
     """
 
+    home_id: str
+    home_name: str
+    away_id: str
+    away_name: str
+    home_score: int | None
+    away_score: int | None
+    result: str | None  # "home_win", "draw", "away_win", etc., or None if not played
+
+
+@dataclass(frozen=True)
+class RoundDisplay:
+    """
+    A round with enriched match data for display.
+    """
+
+    name: str  # e.g. "R01"
+    date: str | None  # ISO date, e.g. "2025-10-16"
+    matches: list[RoundMatchDisplay]
+
+
+@dataclass(frozen=True)
+class ScenarioMatch:
     home_id: str
     home_name: str
     away_id: str
@@ -395,7 +417,7 @@ class StandingsService:
         Caches the state dict with TTL-based expiration.
         """
 
-        root_key = f"state:{league_key}"
+        root_key = f"state:v2:{league_key}"
         entry = self._roots.get(root_key)
 
         if entry is not None:
@@ -432,6 +454,58 @@ class StandingsService:
         rankings = await self._resolve(ComputeRankingsComputation(state))
 
         return rankings.value
+
+    async def get_rounds(self, league_key: str) -> list[RoundDisplay]:
+        """
+        Get rounds with enriched match data for a league.
+        """
+
+        league = self._config.leagues.get(league_key)
+
+        if league is None:
+            raise ValueError(f"Unknown league: {league_key}")
+
+        cached_state = await self._get_or_fetch_state(league_key, league)
+        state = ChampionshipState.from_dict(cached_state.value)
+
+        # Build a lookup from (home, away) -> raw match dict so we can read scores
+        # directly from the parsed data (models only store home_score/away_score,
+        # but the parser emits home_score/away_score for each round match).
+        raw_match_scores: dict[tuple[str, str], tuple[int | None, int | None]] = {}
+        for raw_round in cached_state.value.get("rounds", []):
+            for m in raw_round["matches"]:
+                raw_match_scores[(m["home"], m["away"])] = (
+                    m.get("home_score"),
+                    m.get("away_score"),
+                )
+
+        result = []
+        for round_ in state.rounds:
+            matches = []
+            for match in round_.matches:
+                home_team = state.team_by_id(match.home)
+                away_team = state.team_by_id(match.away)
+                completed = state.completed_matches.get(match)
+                home_score, away_score = raw_match_scores.get(
+                    (match.home, match.away), (None, None)
+                )
+                result_str = completed.result.value if completed is not None else None
+                matches.append(
+                    RoundMatchDisplay(
+                        home_id=match.home,
+                        home_name=home_team.name,
+                        away_id=match.away,
+                        away_name=away_team.name,
+                        home_score=home_score,
+                        away_score=away_score,
+                        result=result_str,
+                    )
+                )
+            result.append(
+                RoundDisplay(name=round_.name, date=round_.date, matches=matches)
+            )
+
+        return result
 
     def get_league_info(self, league_key: str) -> LeagueConfig:
         """

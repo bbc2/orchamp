@@ -202,13 +202,13 @@ def multi_tie_state() -> ChampionshipState:
             Match(home="tazenda", away="stars_end"): C(MatchResult.DRAW),
             Match(home="tazenda", away="aurora"): C(MatchResult.HOME_WIN),
             Match(home="santanni", away="stars_end"): C(
-                MatchResult.HOME_WIN, MatchScore(home_points=3, away_points=1)
+                MatchResult.HOME_WIN, MatchScore(home_score=3, away_score=1)
             ),
             Match(home="santanni", away="aurora"): C(
-                MatchResult.AWAY_WIN, MatchScore(home_points=2, away_points=3)
+                MatchResult.AWAY_WIN, MatchScore(home_score=2, away_score=3)
             ),
             Match(home="stars_end", away="aurora"): C(
-                MatchResult.HOME_WIN, MatchScore(home_points=4, away_points=1)
+                MatchResult.HOME_WIN, MatchScore(home_score=4, away_score=1)
             ),
         },
         remaining_matches=[],

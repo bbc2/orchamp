@@ -37,5 +37,67 @@ class TestStandings:
                 ],
                 "completed_matches": 3,
                 "remaining_matches": 3,
+                "rounds": [
+                    {
+                        "name": "R01",
+                        "date": "2025-10-01",
+                        "matches": [
+                            {
+                                "home": "alpha",
+                                "home_name": "Alpha TTC",
+                                "away": "beta",
+                                "away_name": "Beta Ping",
+                                "completed": True,
+                            },
+                            {
+                                "home": "beta",
+                                "home_name": "Beta Ping",
+                                "away": "gamma",
+                                "away_name": "Gamma Smash",
+                                "completed": True,
+                            },
+                        ],
+                    },
+                    {
+                        "name": "R02",
+                        "date": "2025-11-01",
+                        "matches": [
+                            {
+                                "home": "alpha",
+                                "home_name": "Alpha TTC",
+                                "away": "gamma",
+                                "away_name": "Gamma Smash",
+                                "completed": True,
+                            },
+                            {
+                                "home": "gamma",
+                                "home_name": "Gamma Smash",
+                                "away": "delta",
+                                "away_name": "Delta Spin",
+                                "completed": False,
+                            },
+                        ],
+                    },
+                    {
+                        "name": "R03",
+                        "date": "2025-12-01",
+                        "matches": [
+                            {
+                                "home": "alpha",
+                                "home_name": "Alpha TTC",
+                                "away": "delta",
+                                "away_name": "Delta Spin",
+                                "completed": False,
+                            },
+                            {
+                                "home": "beta",
+                                "home_name": "Beta Ping",
+                                "away": "delta",
+                                "away_name": "Delta Spin",
+                                "completed": False,
+                            },
+                        ],
+                    },
+                ],
             }
         )

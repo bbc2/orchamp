@@ -161,6 +161,23 @@ def cmd_standings(rules: Rules, state: ChampionshipState) -> int:
         ],
         "completed_matches": len(state.completed_matches),
         "remaining_matches": len(state.remaining_matches),
+        "rounds": [
+            {
+                "name": round_.name,
+                "date": round_.date,
+                "matches": [
+                    {
+                        "home": match.home,
+                        "home_name": state.team_by_id(match.home).name,
+                        "away": match.away,
+                        "away_name": state.team_by_id(match.away).name,
+                        "completed": match in state.completed_matches,
+                    }
+                    for match in round_.matches
+                ],
+            }
+            for round_ in state.rounds
+        ],
     }
     print(json.dumps(result_data, indent=2, ensure_ascii=False))
     return 0

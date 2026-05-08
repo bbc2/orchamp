@@ -96,9 +96,9 @@ def _get_game_points_for_team_in_match(
         return 0, 0
 
     if match.home == team_id:
-        return completed.score.home_points, completed.score.away_points
+        return completed.score.home_score, completed.score.away_score
     else:
-        return completed.score.away_points, completed.score.home_points
+        return completed.score.away_score, completed.score.home_score
 
 
 def _compute_mini_league_stats(

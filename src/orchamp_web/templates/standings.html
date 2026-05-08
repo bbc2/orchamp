@@ -10,12 +10,8 @@
         <h1>{{ league.name }}</h1>
         <a class="source-link" href="{{ league.url }}" target="_blank">Source data ↗</a>
     </div>
-    <button 
-        class="refresh-btn"
-        hx-get="/web/{{ league_key }}/standings-table"
-        hx-target="#standings-table"
-        hx-swap="innerHTML"
-    >
+    <button class="refresh-btn" hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table"
+        hx-swap="innerHTML">
         Refresh
     </button>
 </div>
@@ -23,4 +19,38 @@
 <div id="standings-table">
     {% include "partials/standings_table.html" %}
 </div>
+
+{% if rounds %}
+<h2>Match schedule</h2>
+<table class="schedule-table">
+    <thead>
+        <tr>
+            <th class="col-round">Round</th>
+            <th class="col-date">Date</th>
+            <th class="col-home">Home</th>
+            <th class="col-score-home"></th>
+            <th class="col-sep"></th>
+            <th class="col-score-away"></th>
+            <th class="col-away">Away</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for round in rounds %}
+        {% for match in round.matches %}
+        <tr class="{% if match.result %}match-completed{% else %}match-pending{% endif %}">
+            {% if loop.first %}
+            <td class="col-round" rowspan="{{ round.matches | length }}">{{ round.name }}</td>
+            <td class="col-date" rowspan="{{ round.matches | length }}">{{ round.date or '' }}</td>
+            {% endif %}
+            <td class="col-home{% if match.result == 'home_win' %} winner{% endif %}">{{ match.home_name }}</td>
+            <td class="col-score-home">{% if match.home_score is not none %}{{ match.home_score }}{% endif %}</td>
+            <td class="col-sep">–</td>
+            <td class="col-score-away">{% if match.away_score is not none %}{{ match.away_score }}{% endif %}</td>
+            <td class="col-away{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}

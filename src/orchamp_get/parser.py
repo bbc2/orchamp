@@ -28,6 +28,19 @@ class ParsedMatch:
     away: str  # Team ID
     home_score: int | None = None
     away_score: int | None = None
+    round_name: str | None = None
+    date: str | None = None
+
+
+@dataclass(frozen=True)
+class ParsedRound:
+    """
+    A round with its matches.
+    """
+
+    name: str  # e.g. "R01"
+    date: str | None  # ISO date, e.g. "2025-10-16"
+    matches: list[ParsedMatch]
 
 
 def _extract_team_id(cell: Tag) -> str | None:
@@ -113,36 +126,50 @@ def parse_teams(soup: BeautifulSoup) -> list[ParsedTeam]:
     return teams
 
 
-def parse_matches(soup: BeautifulSoup) -> tuple[list[ParsedMatch], list[ParsedMatch]]:
+def parse_rounds(soup: BeautifulSoup) -> list[ParsedRound]:
     """
-    Parse matches from the results table.
+    Parse matches grouped by round from the results table.
 
-    Returns a tuple of (completed_matches, remaining_matches).
-    A match is completed if it has scores for both teams.
+    Tracks the current round name and date as rows are iterated, assigning
+    them to each match. Exempt matches (no opponent) are excluded.
     """
 
-    completed: list[ParsedMatch] = []
-    remaining: list[ParsedMatch] = []
+    rounds: list[ParsedRound] = []
+    current_round_name: str | None = None
+    current_round_date: str | None = None  # date when the current round started
+    current_date: str | None = None  # most recently seen date_m value
+    current_round_matches: list[ParsedMatch] = []
 
-    # Find the match results table (the one with class 'champ' but not 'tablesorter')
     match_tables = soup.find_all("table", class_="champ")
 
     for table in match_tables:
-        # Skip the standings table
         table_classes = table.get("class")
         if table_classes and "tablesorter" in table_classes:
             continue
 
         for tbody in table.find_all("tbody"):
             for row in tbody.find_all("tr"):
-                # Skip header rows (date rows have th elements spanning all columns)
-                if row.find("th", class_="date_m"):
+                date_th = row.find("th", class_="date_m")
+                if date_th:
+                    time_el = date_th.find("time")
+                    if time_el and time_el.get("datetime"):
+                        current_date = str(time_el.get("datetime"))
                     continue
-                if row.find("th", class_="jours"):
-                    # This is a match row with day indicator
-                    pass
 
-                # Find the two club cells
+                jours_th = row.find("th", class_="jours")
+                if jours_th:
+                    if current_round_name is not None and current_round_matches:
+                        rounds.append(
+                            ParsedRound(
+                                name=current_round_name,
+                                date=current_round_date,
+                                matches=current_round_matches,
+                            )
+                        )
+                    current_round_name = jours_th.get_text(strip=True)
+                    current_round_date = current_date  # date from preceding date_m row
+                    current_round_matches = []
+
                 club_cells = row.find_all("td", class_="club")
                 if len(club_cells) != 2:
                     continue
@@ -151,26 +178,19 @@ def parse_matches(soup: BeautifulSoup) -> tuple[list[ParsedMatch], list[ParsedMa
                 home_id = _extract_team_id(home_cell)
                 away_id = _extract_team_id(away_cell)
 
-                # Skip exempt matches (no opponent)
                 if not home_id or not away_id:
                     continue
 
-                # Get all td cells to find scores
                 all_cells = row.find_all("td")
-
-                # Scores are typically in cells between the two club cells
                 home_score: int | None = None
                 away_score: int | None = None
 
-                # Find cells with score classes or positioned between club cells
-                for i, cell in enumerate(all_cells):
+                for cell in all_cells:
                     classes = cell.get("class")
                     if classes and "club" in classes:
                         continue
-
                     text = cell.get_text(strip=True)
                     score = _parse_score(text)
-
                     if score is not None:
                         if home_score is None:
                             home_score = score
@@ -182,12 +202,40 @@ def parse_matches(soup: BeautifulSoup) -> tuple[list[ParsedMatch], list[ParsedMa
                     away=away_id,
                     home_score=home_score,
                     away_score=away_score,
+                    round_name=current_round_name,
+                    date=current_round_date,
                 )
+                current_round_matches.append(match)
 
-                if match.home_score is not None and match.away_score is not None:
-                    completed.append(match)
-                else:
-                    remaining.append(match)
+    if current_round_name is not None and current_round_matches:
+        rounds.append(
+            ParsedRound(
+                name=current_round_name,
+                date=current_round_date,
+                matches=current_round_matches,
+            )
+        )
+
+    return rounds
+
+
+def parse_matches(soup: BeautifulSoup) -> tuple[list[ParsedMatch], list[ParsedMatch]]:
+    """
+    Parse matches from the results table.
+
+    Returns a tuple of (completed_matches, remaining_matches).
+    A match is completed if it has scores for both teams.
+    """
+
+    completed: list[ParsedMatch] = []
+    remaining: list[ParsedMatch] = []
+
+    for round_ in parse_rounds(soup):
+        for match in round_.matches:
+            if match.home_score is not None and match.away_score is not None:
+                completed.append(match)
+            else:
+                remaining.append(match)
 
     return completed, remaining
 
@@ -213,7 +261,13 @@ def parse_html(html: str) -> dict[str, Any]:
     soup = BeautifulSoup(html, "html.parser")
 
     teams = parse_teams(soup)
-    completed, remaining = parse_matches(soup)
+    rounds = parse_rounds(soup)
+
+    all_matches = [m for r in rounds for m in r.matches]
+    completed = [
+        m for m in all_matches if m.home_score is not None and m.away_score is not None
+    ]
+    remaining = [m for m in all_matches if m.home_score is None or m.away_score is None]
 
     return {
         "teams": [{"id": t.id, "name": t.name} for t in teams],
@@ -228,4 +282,25 @@ def parse_html(html: str) -> dict[str, Any]:
             for m in completed
         ],
         "remaining_matches": [{"home": m.home, "away": m.away} for m in remaining],
+        "rounds": [
+            {
+                "name": r.name,
+                "date": r.date,
+                "matches": [
+                    {
+                        "home": m.home,
+                        "away": m.away,
+                        "home_score": m.home_score,
+                        "away_score": m.away_score,
+                        **(
+                            {"result": _result_from_score(m.home_score, m.away_score)}
+                            if m.home_score is not None and m.away_score is not None
+                            else {}
+                        ),
+                    }
+                    for m in r.matches
+                ],
+            }
+            for r in rounds
+        ],
     }
