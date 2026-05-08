@@ -63,7 +63,7 @@ run:
     HTTP_PID=$!
     trap "kill $HTTP_PID 2>/dev/null" EXIT
     env \
-        ORCHAMP_CONFIG=tests/orchamp_web/data/config.toml \
+        ORCHAMP_CONFIG=_local/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
         uvicorn --factory --reload orchamp_web.app:create
 
