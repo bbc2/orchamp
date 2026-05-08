@@ -13,9 +13,9 @@ test: test-python
 
 # Run Python linters (type check + ruff)
 lint-python:
-    ty check {{python_srcs}}
-    ruff check {{python_srcs}}
-    ruff format --check --diff {{python_srcs}}
+    ty check {{ python_srcs }}
+    ruff check {{ python_srcs }}
+    ruff format --check --diff {{ python_srcs }}
 
 # Lint JSON files
 lint-json:
@@ -29,7 +29,7 @@ check: lint test
 
 # Fix Python linter errors
 fix-python:
-    ruff check --fix {{python_srcs}}
+    ruff check --fix {{ python_srcs }}
 
 # Fix JSON linter errors
 fix-json:
@@ -40,8 +40,8 @@ fix: fix-python fix-json
 
 # Format Python code
 format-python:
-    ruff check --select I --fix {{python_srcs}}
-    ruff format {{python_srcs}}
+    ruff check --select I --fix {{ python_srcs }}
+    ruff format {{ python_srcs }}
 
 # Format JSON files
 format-json:
