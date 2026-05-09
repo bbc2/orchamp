@@ -104,7 +104,7 @@ def _anonymize_soup(soup: BeautifulSoup) -> None:
                 label.string = anon.get_name(label.string.strip())
 
         classes = cell.get("class") or []
-        cell["class"] = [  # type: ignore[assignment]
+        cell["class"] = [  # type: ignore
             anon.get_id(cls)
             if isinstance(cls, str) and cls not in ("club", "v", "d", "n")
             else cls

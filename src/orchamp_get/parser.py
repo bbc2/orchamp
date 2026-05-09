@@ -277,7 +277,7 @@ def parse_html(html: str) -> dict[str, Any]:
                 "away": m.away,
                 "home_score": m.home_score,
                 "away_score": m.away_score,
-                "result": _result_from_score(m.home_score, m.away_score),  # type: ignore[arg-type]
+                "result": _result_from_score(m.home_score, m.away_score),  # type: ignore
             }
             for m in completed
         ],

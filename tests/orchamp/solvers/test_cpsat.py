@@ -68,7 +68,7 @@ class TestCpSatSolver:
 
         # Force alpha to win
         match = state.remaining_matches[0]
-        constraints = [
+        constraints: list[Constraint] = [
             MatchResultConstraint(match=match, result=MatchResult.HOME_WIN),
             TeamPositionConstraint(team_id="alpha", max_position=1),
         ]
@@ -92,7 +92,7 @@ class TestCpSatSolver:
         state = create_minimal_state()
 
         match = state.remaining_matches[0]
-        constraints = [
+        constraints: list[Constraint] = [
             MatchResultConstraint(match=match, result=MatchResult.HOME_WIN),
             TeamPositionConstraint(team_id="alpha", min_position=2),
         ]
