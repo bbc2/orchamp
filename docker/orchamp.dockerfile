@@ -86,8 +86,6 @@ USER root
 RUN chmod --recursive a+rX /home/one/app/src/orchamp_web/static
 USER one
 
-# Set up configuration file
-COPY _local/config.toml /home/one/app/config.toml
 ENV ORCHAMP_CONFIG="/home/one/app/config.toml"
 
 CMD ["dumb-init", "/home/one/app/.venv/bin/gunicorn", "--bind", "0.0.0.0:8080", "--worker-class", "uvicorn.workers.UvicornWorker", "orchamp_web.app:create()"]

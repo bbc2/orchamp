@@ -73,7 +73,9 @@ docker-build:
 
 # Build and run the Docker image
 docker-run: docker-build
-    docker run --rm --publish 8080:8080 orchamp:latest
+    docker run --rm --publish 8080:8080 \
+        --volume "$(pwd)/_local/config.toml:/home/one/app/config.toml:ro" \
+        orchamp:latest
 
 # Deploy the application
 deploy: docker-build

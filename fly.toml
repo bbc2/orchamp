@@ -20,3 +20,7 @@ grace_period = "1s"
 [[vm]]
 cpus = 1
 memory_mb = 512
+
+[[files]]
+guest_path = "/home/one/app/config.toml"
+secret_name = "ORCHAMP_CONFIG_TOML"
