@@ -31,7 +31,12 @@ class ColoredFormatter(logging.Formatter):
             levelname = f"{color}{levelname}{RESET}"
             name = f"{DIM}{name}{RESET}"
 
-        return f"{levelname} {name}: {message}"
+        result = f"{levelname} {name}: {message}"
+
+        if record.exc_info:
+            result += f"\n{self.formatException(record.exc_info)}"
+
+        return result
 
 
 def configure_logging(log_level: int = logging.INFO) -> None:
