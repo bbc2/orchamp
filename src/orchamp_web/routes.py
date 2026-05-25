@@ -2,12 +2,19 @@
 Route handlers for the web application.
 """
 
+import asyncio
 from typing import Annotated
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from orchamp_web.assumptions import (
+    AssumptionDisplay,
+    parse_assumptions,
+    serialize_assumption,
+)
 from orchamp_web.cache import DiskContentStore, DiskRootStore
 from orchamp_web.config import AppConfig
 from orchamp_web.services import StandingsService
@@ -93,8 +100,11 @@ async def web_standings(
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    standings = await service.get_standings(league_key)
-    rounds = await service.get_rounds(league_key)
+    standings, rounds, projected_positions = await asyncio.gather(
+        service.get_standings(league_key),
+        service.get_rounds(league_key),
+        service.get_projected_positions(league_key, []),
+    )
     league = service.get_league_info(league_key)
 
     return templates.TemplateResponse(
@@ -105,6 +115,7 @@ async def web_standings(
             "league": league,
             "standings": standings,
             "rounds": rounds,
+            "projected_positions": projected_positions,
         },
     )
 
@@ -116,6 +127,7 @@ async def web_standings_table(
     config: Annotated[AppConfig, Depends(get_config)],
     service: Annotated[StandingsService, Depends(get_service)],
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
+    a: Annotated[list[str], Query()] = [],
 ) -> HTMLResponse:
     """
     Render just the standings table (for HTMX partial updates).
@@ -124,6 +136,8 @@ async def web_standings_table(
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
     standings = await service.get_standings(league_key)
+    assumptions = parse_assumptions(a)
+    projected_positions = await service.get_projected_positions(league_key, assumptions)
 
     return templates.TemplateResponse(
         request=request,
@@ -131,6 +145,34 @@ async def web_standings_table(
         context={
             "league_key": league_key,
             "standings": standings,
+            "projected_positions": projected_positions,
+        },
+    )
+
+
+@router.get("/web/{league_key}/assumptions-panel", response_class=HTMLResponse)
+async def web_assumptions_panel(
+    request: Request,
+    league_key: str,
+    config: Annotated[AppConfig, Depends(get_config)],
+    service: Annotated[StandingsService, Depends(get_service)],
+    templates: Annotated[Jinja2Templates, Depends(get_templates)],
+    a: Annotated[list[str], Query()] = [],
+) -> HTMLResponse:
+    """
+    Render the assumptions panel partial (HTMX target).
+    """
+    if league_key not in config.leagues:
+        raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
+
+    assumptions = parse_assumptions(a)
+    displays = await service.get_assumption_displays(league_key, assumptions)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/assumptions_panel.html",
+        context={
+            "assumptions": displays,
         },
     )
 
@@ -159,6 +201,7 @@ async def web_team_analysis(
     config: Annotated[AppConfig, Depends(get_config)],
     service: Annotated[StandingsService, Depends(get_service)],
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
+    a: Annotated[list[str], Query()] = [],
 ) -> HTMLResponse:
     """
     Render team analysis page.
@@ -167,12 +210,32 @@ async def web_team_analysis(
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    analysis = await service.get_team_analysis(league_key, team_id)
+    assumptions = parse_assumptions(a)
+    analysis = await service.get_team_analysis(
+        league_key, team_id, assumptions=assumptions
+    )
     league = service.get_league_info(league_key)
     standings = await service.get_standings(league_key)
 
     if analysis is None:
         raise HTTPException(status_code=404, detail=f"Unknown team: {team_id}")
+
+    team_names = {r.team_id: r.team_name for r in standings}
+    assumption_displays = [
+        AssumptionDisplay(
+            home_id=asmp.home_id,
+            home_name=team_names.get(asmp.home_id, asmp.home_id),
+            away_id=asmp.away_id,
+            away_name=team_names.get(asmp.away_id, asmp.away_id),
+            home_score=asmp.home_score,
+            away_score=asmp.away_score,
+        )
+        for asmp in assumptions
+        if asmp.home_id in team_names and asmp.away_id in team_names
+    ]
+    assumption_qs = urlencode(
+        [("a", serialize_assumption(asmp)) for asmp in assumptions]
+    )
 
     return templates.TemplateResponse(
         request=request,
@@ -183,5 +246,7 @@ async def web_team_analysis(
             "team_id": team_id,
             "analysis": analysis,
             "standings": standings,
+            "assumption_displays": assumption_displays,
+            "assumption_qs": assumption_qs,
         },
     )

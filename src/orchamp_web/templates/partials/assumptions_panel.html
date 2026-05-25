@@ -1,0 +1,15 @@
+{% if assumptions %}
+<div class="assumptions-panel">
+    <h3>Assumptions</h3>
+    <ul class="assumptions-list">
+        {% for a in assumptions %}
+        <li>
+            <span><strong>{{ a.home_name }}</strong> {{ a.home_score }}–{{ a.away_score }} <strong>{{ a.away_name }}</strong></span>
+            <button class="remove-btn" onclick="orchampRemoveAssumption('{{ a.home_id }}', '{{ a.away_id }}')">×</button>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<p class="no-assumptions">No assumptions set. Enter scores for upcoming matches to see projected standings.</p>
+{% endif %}

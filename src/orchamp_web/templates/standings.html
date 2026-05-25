@@ -10,10 +10,17 @@
         <h1>{{ league.name }}</h1>
         <a class="source-link" href="{{ league.url }}" target="_blank">Source data ↗</a>
     </div>
-    <button class="refresh-btn" hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table"
+    <button class="refresh-btn"
+        data-base-url="/web/{{ league_key }}/standings-table"
+        hx-get="/web/{{ league_key }}/standings-table"
+        hx-target="#standings-table"
         hx-swap="innerHTML">
         Refresh
     </button>
+</div>
+
+<div id="assumptions-panel">
+    <p class="no-assumptions">No assumptions set. Enter scores for upcoming matches to see projected standings.</p>
 </div>
 
 <div id="standings-table">
@@ -37,15 +44,15 @@
     <tbody>
         {% for round in rounds %}
         {% for match in round.matches %}
-        <tr class="{% if match.result %}match-completed{% else %}match-pending{% endif %}">
+        <tr class="{% if match.result %}match-completed{% else %}match-pending{% endif %}"{% if not match.result %} data-home-id="{{ match.home_id }}" data-away-id="{{ match.away_id }}"{% endif %}>
             {% if loop.first %}
             <td class="col-round" rowspan="{{ round.matches | length }}">{{ round.name }}</td>
             <td class="col-date" rowspan="{{ round.matches | length }}">{{ round.date or '' }}</td>
             {% endif %}
             <td class="col-home{% if match.result == 'home_win' %} winner{% endif %}">{{ match.home_name }}</td>
-            <td class="col-score-home">{% if match.home_score is not none %}{{ match.home_score }}{% endif %}</td>
+            <td class="col-score-home">{% if match.result %}{% if match.home_score is not none %}{{ match.home_score }}{% endif %}{% else %}<input type="number" min="0" max="20" class="score-input" data-role="home">{% endif %}</td>
             <td class="col-sep">–</td>
-            <td class="col-score-away">{% if match.away_score is not none %}{{ match.away_score }}{% endif %}</td>
+            <td class="col-score-away">{% if match.result %}{% if match.away_score is not none %}{{ match.away_score }}{% endif %}{% else %}<input type="number" min="0" max="20" class="score-input" data-role="away">{% endif %}</td>
             <td class="col-away{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
         </tr>
         {% endfor %}
@@ -53,4 +60,12 @@
     </tbody>
 </table>
 {% endif %}
+
+<script src="/static/assumptions.js"></script>
+<script>
+    var validMatchKeys = Array.from(
+        document.querySelectorAll('tr.match-pending[data-home-id]')
+    ).map(function (r) { return r.dataset.homeId + ':' + r.dataset.awayId; });
+    orchampInitStandingsPage('{{ league_key }}', validMatchKeys);
+</script>
 {% endblock %}

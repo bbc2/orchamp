@@ -3,6 +3,7 @@ Business logic for fetching pages and computing standings.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import time
@@ -12,7 +13,14 @@ from typing import Generic, Protocol, TypeVar
 import httpx
 
 from orchamp.analyzer import Analyzer
-from orchamp.models import ChampionshipState, Rules, Scenario
+from orchamp.models import (
+    ChampionshipState,
+    CompletedMatch,
+    Match,
+    MatchScore,
+    Rules,
+    Scenario,
+)
 from orchamp.ranking import RankedTeam, compute_rankings
 from orchamp.solvers.cpsat import CpSatSolver
 from orchamp_web.cache import (
@@ -21,12 +29,49 @@ from orchamp_web.cache import (
     collect_garbage,
     compute_hash,
 )
+from orchamp_web.assumptions import AssumptionDisplay, AssumptionEntry
 from orchamp_web.config import DEFAULT_RULES, AppConfig, LeagueConfig
 from orchamp_web.sources import get_data_source
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+
+
+def _hash_assumptions(assumptions: tuple[tuple[str, str, int, int], ...]) -> str:
+    data = json.dumps(sorted(assumptions)).encode()
+    return hashlib.sha256(data).hexdigest()[:16]
+
+
+def _augment_state(
+    state: ChampionshipState,
+    assumptions: tuple[tuple[str, str, int, int], ...],
+) -> ChampionshipState:
+    """
+    Return a new state with assumed results moved from remaining to completed.
+
+    Assumptions that do not match a remaining match are silently ignored.
+    """
+
+    remaining_set = set(state.remaining_matches)
+    extra_completed: dict[Match, CompletedMatch] = {}
+    for home_id, away_id, home_score, away_score in assumptions:
+        match = Match(home=home_id, away=away_id)
+        if match in remaining_set:
+            score = MatchScore(home_score=home_score, away_score=away_score)
+            extra_completed[match] = CompletedMatch(result=score.result(), score=score)
+
+    if not extra_completed:
+        return state
+
+    return ChampionshipState(
+        teams=state.teams,
+        completed_matches={**state.completed_matches, **extra_completed},
+        remaining_matches=[
+            m for m in state.remaining_matches if m not in extra_completed
+        ],
+        rounds=state.rounds,
+    )
 
 
 @dataclass(frozen=True)
@@ -211,9 +256,10 @@ class AnalyzeTeamComputation:
 
     _state: Cached[dict]
     _team_id: str
+    _assumptions: tuple[tuple[str, str, int, int], ...] = ()
 
     def cache_key(self) -> str:
-        return f"analysis:v2:{self._state.hash}:{self._team_id}"
+        return f"analysis:v3:{self._state.hash}:{_hash_assumptions(self._assumptions)}:{self._team_id}"
 
     def refs(self) -> list[str]:
         return [self._state.hash]
@@ -249,6 +295,8 @@ class AnalyzeTeamComputation:
 
     async def compute(self) -> TeamAnalysisResult | None:
         state = ChampionshipState.from_dict(self._state.value)
+        if self._assumptions:
+            state = _augment_state(state, self._assumptions)
         rules = Rules.from_dict(DEFAULT_RULES)
         solver = CpSatSolver(random_seed=42, num_workers=1)
         analyzer = Analyzer(solver=solver)
@@ -519,11 +567,94 @@ class StandingsService:
 
         return league
 
+    async def get_assumption_displays(
+        self,
+        league_key: str,
+        assumptions: list[AssumptionEntry],
+    ) -> list[AssumptionDisplay]:
+        """
+        Return display objects for assumptions that match a remaining match.
+        """
+
+        league = self._config.leagues.get(league_key)
+
+        if league is None:
+            raise ValueError(f"Unknown league: {league_key}")
+
+        cached_state = await self._get_or_fetch_state(league_key, league)
+        state = ChampionshipState.from_dict(cached_state.value)
+        remaining_set = set(state.remaining_matches)
+
+        return [
+            AssumptionDisplay(
+                home_id=a.home_id,
+                home_name=state.team_by_id(a.home_id).name,
+                away_id=a.away_id,
+                away_name=state.team_by_id(a.away_id).name,
+                home_score=a.home_score,
+                away_score=a.away_score,
+            )
+            for a in assumptions
+            if Match(home=a.home_id, away=a.away_id) in remaining_set
+        ]
+
+    async def get_projected_positions(
+        self,
+        league_key: str,
+        assumptions: list[AssumptionEntry],
+    ) -> dict[str, tuple[int, int]]:
+        """
+        Compute best/worst achievable position for every team with the given
+        assumptions pre-applied.  Runs the solver for all teams in parallel.
+        """
+
+        league = self._config.leagues.get(league_key)
+
+        if league is None:
+            raise ValueError(f"Unknown league: {league_key}")
+
+        cached_state = await self._get_or_fetch_state(league_key, league)
+        state = ChampionshipState.from_dict(cached_state.value)
+        remaining_set = set(state.remaining_matches)
+
+        valid_assumptions = [
+            a
+            for a in assumptions
+            if Match(home=a.home_id, away=a.away_id) in remaining_set
+        ]
+        assumption_tuples = tuple(
+            (a.home_id, a.away_id, a.home_score, a.away_score)
+            for a in valid_assumptions
+        )
+
+        team_ids = [t.id for t in state.teams]
+        results = await asyncio.gather(
+            *[
+                self._resolve(
+                    AnalyzeTeamComputation(cached_state, team_id, assumption_tuples)
+                )
+                for team_id in team_ids
+            ]
+        )
+
+        positions: dict[str, tuple[int, int]] = {}
+        for team_id, result in zip(team_ids, results):
+            if result.value is not None:
+                positions[team_id] = (
+                    result.value.best_position,
+                    result.value.worst_position,
+                )
+
+        return positions
+
     async def get_team_analysis(
-        self, league_key: str, team_id: str
+        self,
+        league_key: str,
+        team_id: str,
+        assumptions: list[AssumptionEntry] | None = None,
     ) -> TeamAnalysisResult | None:
         """
-        Get position analysis for a team.
+        Get position analysis for a team, optionally with assumed match results.
         """
 
         league = self._config.leagues.get(league_key)
@@ -532,7 +663,20 @@ class StandingsService:
             raise ValueError(f"Unknown league: {league_key}")
 
         state = await self._get_or_fetch_state(league_key, league)
-        analysis = await self._resolve(AnalyzeTeamComputation(state, team_id))
+
+        assumption_tuples: tuple[tuple[str, str, int, int], ...] = ()
+        if assumptions:
+            state_model = ChampionshipState.from_dict(state.value)
+            remaining_set = set(state_model.remaining_matches)
+            assumption_tuples = tuple(
+                (a.home_id, a.away_id, a.home_score, a.away_score)
+                for a in assumptions
+                if Match(home=a.home_id, away=a.away_id) in remaining_set
+            )
+
+        analysis = await self._resolve(
+            AnalyzeTeamComputation(state, team_id, assumption_tuples)
+        )
 
         return analysis.value
 

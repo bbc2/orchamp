@@ -1,19 +1,25 @@
 <table>
     <thead>
         <tr>
-            <th class="text-center">#</th>
+            <th class="text-center col-numeric">#</th>
             <th>Team</th>
-            <th class="text-right">Points</th>
+            <th class="text-center col-numeric">Points</th>
+            <th class="text-center col-numeric col-best-worst">Best–Worst</th>
         </tr>
     </thead>
     <tbody>
         {% for team in standings %}
         <tr>
-            <td class="text-center">{{ team.position }}</td>
+            <td class="text-center col-numeric">{{ team.position }}</td>
             <td>
                 <a href="/web/{{ league_key }}/team/{{ team.team_id }}/" class="team-link">{{ team.team_name }}</a>
             </td>
-            <td class="text-right">{{ team.points }}</td>
+            <td class="text-center col-numeric">{{ team.points }}</td>
+            <td class="text-center col-numeric col-best-worst">
+                {% if team.team_id in projected_positions %}
+                {{ projected_positions[team.team_id][0] }}–{{ projected_positions[team.team_id][1] }}
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

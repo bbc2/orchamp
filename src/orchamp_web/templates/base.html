@@ -88,6 +88,11 @@
             text-align: center;
         }
 
+        .col-numeric {
+            width: 1%;
+            white-space: nowrap;
+        }
+
         .refresh-btn {
             background: var(--accent);
             color: white;
@@ -239,6 +244,110 @@
 
         .schedule-table .match-pending td {
             opacity: 0.5;
+        }
+
+        .schedule-table .match-pending td:has(.score-input) {
+            opacity: 1;
+        }
+
+        .score-input {
+            width: 2.5rem;
+            padding: 0.125rem 0.25rem;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 0.875rem;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            -moz-appearance: textfield;
+        }
+
+        .score-input::-webkit-inner-spin-button,
+        .score-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+        .score-input:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        #assumptions-panel {
+            margin-bottom: 1rem;
+        }
+
+        .assumptions-panel {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+        }
+
+        .assumptions-panel h3 {
+            margin: 0 0 0.75rem;
+            font-size: 1rem;
+        }
+
+        .assumptions-panel h3:not(:first-child) {
+            margin-top: 1rem;
+        }
+
+        .assumptions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .assumptions-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .remove-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--fg);
+            cursor: pointer;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.875rem;
+            opacity: 0.5;
+            margin-left: auto;
+        }
+
+        .remove-btn:hover {
+            opacity: 1;
+            background: var(--row-alt);
+        }
+
+        .no-assumptions {
+            opacity: 0.6;
+            font-style: italic;
+            font-size: 0.875rem;
+            margin: 0 0 1rem;
+        }
+
+        .assumptions-banner {
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+            font-size: 0.9rem;
+        }
+
+        .assumptions-banner ul {
+            margin: 0.5rem 0 0;
+            padding-left: 1.5rem;
+        }
+
+        .assumptions-banner li {
+            margin: 0.25rem 0;
         }
     </style>
 </head>

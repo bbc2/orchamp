@@ -23,9 +23,9 @@ RUN mkdir /home/one/app
 WORKDIR /home/one/app
 
 COPY package.json bun.lockb ./
-RUN mkdir --parents src/orchamp_web/static \
-    && /opt/bun install \
-    && /opt/bun run build:static
+RUN /opt/bun install
+COPY --chown=one:one src/orchamp_web/static/assumptions.js src/orchamp_web/static/assumptions.js
+RUN /opt/bun run build:static
 
 # Stage: Python app building
 FROM debian:12-slim@sha256:e899040a73d36e2b36fa33216943539d9957cba8172b858097c2cabcdb20a3e2 AS builder
@@ -82,6 +82,9 @@ USER one
 COPY --from=builder-static \
     /home/one/app/src/orchamp_web/static \
     /home/one/app/src/orchamp_web/static
+USER root
+RUN chmod --recursive a+rX /home/one/app/src/orchamp_web/static
+USER one
 
 # Set up configuration file
 COPY _local/config.toml /home/one/app/config.toml
