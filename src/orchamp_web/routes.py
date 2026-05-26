@@ -15,11 +15,12 @@ from orchamp_web.assumptions import (
     parse_assumptions,
     serialize_assumption,
 )
+from orchamp_web.auth import require_basic_auth
 from orchamp_web.cache import DiskContentStore, DiskRootStore
 from orchamp_web.config import AppConfig
 from orchamp_web.services import StandingsService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_basic_auth)])
 
 
 def get_config(request: Request) -> AppConfig:

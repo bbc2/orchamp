@@ -75,8 +75,16 @@ docker-build:
 docker-run: docker-build
     docker run --rm --publish 8080:8080 \
         --volume "$(pwd)/_local/config.toml:/home/one/app/config.toml:ro" \
+        --env ORCHAMP_BETA_PASSWORD=pass \
         orchamp:latest
 
 # Deploy the application
 deploy: docker-build
+    #!/usr/bin/env bash
+    set -e
+    if [ -z "$ORCHAMP_BETA_PASSWORD" ]; then
+        echo "Error: ORCHAMP_BETA_PASSWORD is not set" >&2
+        exit 1
+    fi
+    flyctl secrets set --stage ORCHAMP_BETA_PASSWORD="$ORCHAMP_BETA_PASSWORD"
     flyctl deploy --local-only
