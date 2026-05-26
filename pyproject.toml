@@ -36,6 +36,9 @@ dev = [
 [tool.inline-snapshot]
 format-command = "ruff format --stdin-filename {filename}"
 
+[tool.uv]
+exclude-newer = "3 days"
+
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]
 build-backend = "uv_build"
