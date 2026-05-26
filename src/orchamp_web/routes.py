@@ -3,7 +3,7 @@ Route handlers for the web application.
 """
 
 import asyncio
-from typing import Annotated
+from typing import Annotated, Any
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -119,28 +119,34 @@ async def web_standings(
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> HTMLResponse:
     """
-    Render standings as HTML.
+    Render the page shell; content is loaded lazily via HTMX.
     """
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    standings, rounds, projected_positions = await asyncio.gather(
-        service.get_standings(league_key),
-        service.get_rounds(league_key),
-        service.get_projected_positions(league_key, []),
-    )
     league = service.get_league_info(league_key)
+
+    lazy = not service.is_state_cached(league_key)
+    context: dict[str, Any] = {
+        "league_key": league_key,
+        "league": league,
+        "lazy": lazy,
+    }
+
+    if not lazy:
+        standings, rounds, projected_positions = await asyncio.gather(
+            service.get_standings(league_key),
+            service.get_rounds(league_key),
+            service.get_projected_positions(league_key, []),
+        )
+        context["standings"] = standings
+        context["rounds"] = rounds
+        context["projected_positions"] = projected_positions
 
     return templates.TemplateResponse(
         request=request,
         name="standings.html",
-        context={
-            "league_key": league_key,
-            "league": league,
-            "standings": standings,
-            "rounds": rounds,
-            "projected_positions": projected_positions,
-        },
+        context=context,
     )
 
 
@@ -170,6 +176,32 @@ async def web_standings_table(
             "league_key": league_key,
             "standings": standings,
             "projected_positions": projected_positions,
+        },
+    )
+
+
+@router.get("/web/{league_key}/schedule", response_class=HTMLResponse)
+async def web_schedule(
+    request: Request,
+    league_key: str,
+    config: Annotated[AppConfig, Depends(get_config)],
+    service: Annotated[StandingsService, Depends(get_service)],
+    templates: Annotated[Jinja2Templates, Depends(get_templates)],
+) -> HTMLResponse:
+    """
+    Render the match schedule partial (HTMX target).
+    """
+    if league_key not in config.leagues:
+        raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
+
+    rounds = await service.get_rounds(league_key)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/schedule.html",
+        context={
+            "league_key": league_key,
+            "rounds": rounds,
         },
     )
 

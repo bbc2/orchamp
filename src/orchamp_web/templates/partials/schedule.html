@@ -1,0 +1,38 @@
+{% if rounds %}
+<h2>{{ _("Match schedule") }}</h2>
+<table class="schedule-table">
+    <thead>
+        <tr>
+            <th class="col-round">{{ _("Round") }}</th>
+            <th class="col-date">{{ _("Date") }}</th>
+            <th class="col-home">{{ _("Home") }}</th>
+            <th class="col-score-home"></th>
+            <th class="col-sep"></th>
+            <th class="col-score-away"></th>
+            <th class="col-away">{{ _("Away") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for round in rounds %}
+        {% for match in round.matches %}
+        <tr class="{% if match.result %}match-completed{% else %}match-pending{% endif %}" {% if not match.result %}
+            data-home-id="{{ match.home_id }}" data-away-id="{{ match.away_id }}" {% endif %}>
+            {% if loop.first %}
+            <td class="col-round" rowspan="{{ round.matches | length }}">{{ round.name }}</td>
+            <td class="col-date" rowspan="{{ round.matches | length }}">{{ round.date or '' }}</td>
+            {% endif %}
+            <td class="col-home{% if match.result == 'home_win' %} winner{% endif %}">{{ match.home_name }}</td>
+            <td class="col-score-home">{% if match.result %}{% if match.home_score is not none %}{{ match.home_score
+                }}{% endif %}{% else %}<input type="number" min="0" max="20" class="score-input" data-role="home">{%
+                endif %}</td>
+            <td class="col-sep">–</td>
+            <td class="col-score-away">{% if match.result %}{% if match.away_score is not none %}{{ match.away_score
+                }}{% endif %}{% else %}<input type="number" min="0" max="20" class="score-input" data-role="away">{%
+                endif %}</td>
+            <td class="col-away{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

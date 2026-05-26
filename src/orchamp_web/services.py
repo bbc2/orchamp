@@ -555,6 +555,14 @@ class StandingsService:
 
         return result
 
+    def is_state_cached(self, league_key: str) -> bool:
+        """
+        Return True if the championship state for this league is on disk and not expired.
+        """
+
+        entry = self._roots.get(f"state:v2:{league_key}")
+        return entry is not None and self._content.get(entry.content_hash) is not None
+
     def get_league_info(self, league_key: str) -> LeagueConfig:
         """
         Get league configuration.
