@@ -204,7 +204,6 @@ async def web_assumptions_panel(
 @router.get("/", response_class=HTMLResponse)
 def index(
     request: Request,
-    config: Annotated[AppConfig, Depends(get_config)],
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
 ) -> HTMLResponse:
     """
@@ -213,7 +212,7 @@ def index(
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"leagues": config.leagues},
+        context={},
     )
 
 

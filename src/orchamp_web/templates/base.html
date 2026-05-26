@@ -34,13 +34,117 @@
             background: var(--bg);
             color: var(--fg);
             margin: 0;
-            padding: 1rem;
             line-height: 1.5;
         }
 
-        .container {
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .league-nav {
+            width: 160px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 1rem 0.75rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: block;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--fg);
+            margin-bottom: 0.75rem;
+            text-decoration: none;
+        }
+
+        .nav-brand:hover {
+            opacity: 0.8;
+            text-decoration: none;
+        }
+
+        .nav-league {
+            display: block;
+            font-size: 0.8rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 4px;
+            color: var(--fg);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .nav-league:hover {
+            background: var(--row-alt);
+            text-decoration: none;
+        }
+
+        .nav-league.active {
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-spacer {
+            flex: 1;
+        }
+
+        .nav-lang {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .nav-lang a {
+            color: var(--fg);
+            opacity: 0.5;
+            text-decoration: none;
+        }
+
+        .nav-lang a.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .nav-lang a:hover {
+            opacity: 0.8;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 1rem;
             max-width: 800px;
-            margin: 0 auto;
+        }
+
+        @media (max-width: 640px) {
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .league-nav {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 0.5rem;
+                gap: 0.25rem;
+                align-items: center;
+            }
+
+            .nav-brand {
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+
+            .nav-spacer {
+                display: none;
+            }
         }
 
         h1,
@@ -349,41 +453,26 @@
         .assumptions-banner li {
             margin: 0.25rem 0;
         }
-
-        .lang-switcher {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .lang-switcher a {
-            color: var(--fg);
-            opacity: 0.5;
-            text-decoration: none;
-        }
-
-        .lang-switcher a.active {
-            opacity: 1;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .lang-switcher a:hover {
-            opacity: 0.8;
-            text-decoration: none;
-        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <nav class="lang-switcher">
-            <a href="/set-lang?lang=en"{% if locale == "en" %} class="active"{% endif %}>EN</a>
-            <a href="/set-lang?lang=fr"{% if locale == "fr" %} class="active"{% endif %}>FR</a>
+    <div class="app-layout">
+        <nav class="league-nav">
+            <a href="/" class="nav-brand">Orchamp</a>
+            {% for key, short_name in nav_leagues %}
+            <a href="/web/{{ key }}/" class="nav-league{% if key == current_league_key %} active{% endif %}">{{
+                short_name }}</a>
+            {% endfor %}
+            <div class="nav-spacer"></div>
+            <nav class="nav-lang">
+                <a href="/set-lang?lang=en" {% if locale=="en" %} class="active" {% endif %}>EN</a>
+                <a href="/set-lang?lang=fr" {% if locale=="fr" %} class="active" {% endif %}>FR</a>
+            </nav>
         </nav>
-        {% block content %}{% endblock %}
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 </body>
 

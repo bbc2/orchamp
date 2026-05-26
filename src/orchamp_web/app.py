@@ -4,21 +4,36 @@ FastAPI web application for standings.
 
 import logging
 import os
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncIterator
+from typing import Any, AsyncIterator
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from orchamp_web.config import AppConfig
+from orchamp_web.config import AppConfig, sorted_nav_leagues
 from orchamp_web.i18n import SUPPORTED_LOCALES, load_translations, make_locale_context
 from orchamp_web.logs import configure_logging
 from orchamp_web.routes import router
 
 logger = logging.getLogger(__name__)
+
+
+def make_nav_context(config: AppConfig) -> Callable[[Request], dict[str, Any]]:
+    nav_leagues = sorted_nav_leagues(config.leagues)
+
+    def nav_context(request: Request) -> dict[str, Any]:
+        current_league_key = request.path_params.get("league_key", None)
+        return {
+            "nav_leagues": nav_leagues,
+            "current_league_key": current_league_key,
+        }
+
+    return nav_context
+
 
 LOG_LEVELS = {
     "CRITICAL": logging.CRITICAL,
@@ -99,7 +114,10 @@ def create() -> FastAPI:
     }
     app.state.templates = Jinja2Templates(
         directory=Path(__file__).parent / "templates",
-        context_processors=[make_locale_context(translations_by_locale)],
+        context_processors=[
+            make_locale_context(translations_by_locale),
+            make_nav_context(config),
+        ],
     )
 
     app.mount(

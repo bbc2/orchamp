@@ -2,6 +2,7 @@
 Configuration for leagues and app settings.
 """
 
+import re
 import tomllib
 from dataclasses import dataclass
 from enum import Enum
@@ -57,6 +58,33 @@ class AppConfig:
             page_ttl_seconds=(24 * 3600),
             leagues=leagues,
         )
+
+
+_KEY_RE = re.compile(r"^(\d{4})-\d{4}-d(\d+)-ph(\d+)$")
+
+
+def league_short_name(key: str) -> str:
+    match = _KEY_RE.match(key)
+    if match is None:
+        return key
+    year, div, phase = match.groups()
+    return f"{year}: D{div} P{phase}"
+
+
+def sorted_nav_leagues(leagues: dict[str, LeagueConfig]) -> list[tuple[str, str]]:
+    def sort_key(item: tuple[str, LeagueConfig]) -> tuple[int, int, int]:
+        match = _KEY_RE.match(item[0])
+
+        if match is None:
+            return (0, 999, 999)
+
+        year, div, phase = (int(x) for x in match.groups())
+        return (-year, div, phase)
+
+    return [
+        (key, league_short_name(key))
+        for key, _ in sorted(leagues.items(), key=sort_key)
+    ]
 
 
 DEFAULT_RULES = {
