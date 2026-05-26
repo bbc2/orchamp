@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "babel>=2.16",
     "beautifulsoup4>=4.14",
     "fastapi>=0.115",
     "gunicorn>=23.0.0",

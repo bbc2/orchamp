@@ -8,13 +8,13 @@
 <div class="header">
     <div>
         <h1>{{ analysis.team_name }}</h1>
-        <p class="subtitle">Position analysis</p>
+        <p class="subtitle">{{ _("Position analysis") }}</p>
     </div>
 </div>
 
 {% if assumption_displays %}
 <div class="assumptions-banner">
-    <strong>Assumptions applied:</strong>
+    <strong>{{ _("Assumptions applied:") }}</strong>
     <ul>
         {% for a in assumption_displays %}
         <li>{{ a.home_name }} {{ a.home_score }}–{{ a.away_score }} {{ a.away_name }}</li>
@@ -25,150 +25,155 @@
 
 <div class="analysis-summary">
     <div class="position-card">
-        <span class="position-label">Best possible</span>
+        <span class="position-label">{{ _("Best possible") }}</span>
         <span class="position-value">{{ analysis.best_position }}</span>
     </div>
     <div class="position-card">
-        <span class="position-label">Worst possible</span>
+        <span class="position-label">{{ _("Worst possible") }}</span>
         <span class="position-value">{{ analysis.worst_position }}</span>
     </div>
 </div>
 
-<h2>Current standings</h2>
+<h2>{{ _("Current standings") }}</h2>
 <table>
     <thead>
         <tr>
             <th class="text-center">#</th>
-            <th>Team</th>
-            <th class="text-right">Points</th>
+            <th>{{ _("Team") }}</th>
+            <th class="text-right">{{ _("Points") }}</th>
         </tr>
     </thead>
     <tbody>
         {% for team in standings %}
-        <tr{% if team.team_id == analysis.team_id %} class="highlighted"{% endif %}>
+        <tr{% if team.team_id==analysis.team_id %} class="highlighted" {% endif %}>
             <td class="text-center">{{ team.position }}</td>
             <td>
                 {% if team.team_id == analysis.team_id %}
-                    <strong>{{ team.team_name }}</strong>
+                <strong>{{ team.team_name }}</strong>
                 {% else %}
-                    <a href="/web/{{ league_key }}/team/{{ team.team_id }}/{% if assumption_qs %}?{{ assumption_qs }}{% endif %}" class="team-link">{{ team.team_name }}</a>
+                <a href="/web/{{ league_key }}/team/{{ team.team_id }}/{% if assumption_qs %}?{{ assumption_qs }}{% endif %}"
+                    class="team-link">{{ team.team_name }}</a>
                 {% endif %}
             </td>
             <td class="text-right">{{ team.points }}</td>
-        </tr>
-        {% endfor %}
+            </tr>
+            {% endfor %}
     </tbody>
 </table>
 
 <div class="scenarios">
     <div class="scenario">
-        <h2>Best case scenario (position {{ analysis.best_position }})</h2>
+        <h2>{{ _("Best case scenario (position %(pos)s)") % {"pos": analysis.best_position} }}</h2>
 
         {% if analysis.best_scenario.matches %}
-        <h3>Required results</h3>
+        <h3>{{ _("Required results") }}</h3>
         <table class="matches-table">
             <thead>
                 <tr>
-                    <th>Home</th>
-                    <th class="text-center">Result</th>
-                    <th class="text-right">Away</th>
+                    <th>{{ _("Home") }}</th>
+                    <th class="text-center">{{ _("Result") }}</th>
+                    <th class="text-right">{{ _("Away") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for match in analysis.best_scenario.matches %}
                 <tr>
-                    <td{% if match.result == 'home_win' %} class="winner"{% endif %}>{{ match.home_name }}</td>
-                    <td class="text-center">
-                        {% if match.result == 'home_win' %}
-                            Home win
-                        {% elif match.result == 'away_win' %}
-                            Away win
-                        {% else %}
-                            Draw
-                        {% endif %}
-                    </td>
-                    <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
+                    <td{% if match.result=='home_win' %} class="winner" {% endif %}>{{ match.home_name }}</td>
+                        <td class="text-center">
+                            {% if match.result == 'home_win' %}
+                            {{ _("Home win") }}
+                            {% elif match.result == 'away_win' %}
+                            {{ _("Away win") }}
+                            {% else %}
+                            {{ _("Draw") }}
+                            {% endif %}
+                        </td>
+                        <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name
+                            }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-        <p class="no-matches">No remaining matches</p>
+        <p class="no-matches">{{ _("No remaining matches") }}</p>
         {% endif %}
 
-        <h3>Final standings</h3>
+        <h3>{{ _("Final standings") }}</h3>
         <table>
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th>Team</th>
-                    <th class="text-right">Points</th>
+                    <th>{{ _("Team") }}</th>
+                    <th class="text-right">{{ _("Points") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for team in analysis.best_scenario.standings %}
-                <tr{% if team.team_id == analysis.team_id %} class="highlighted"{% endif %}>
+                <tr{% if team.team_id==analysis.team_id %} class="highlighted" {% endif %}>
                     <td class="text-center">{{ team.position }}</td>
-                    <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{ team.team_name }}{% endif %}</td>
+                    <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{
+                        team.team_name }}{% endif %}</td>
                     <td class="text-right">{{ team.points }}</td>
-                </tr>
-                {% endfor %}
+                    </tr>
+                    {% endfor %}
             </tbody>
         </table>
     </div>
 
     <div class="scenario">
-        <h2>Worst case scenario (position {{ analysis.worst_position }})</h2>
+        <h2>{{ _("Worst case scenario (position %(pos)s)") % {"pos": analysis.worst_position} }}</h2>
 
         {% if analysis.worst_scenario.matches %}
-        <h3>Required results</h3>
+        <h3>{{ _("Required results") }}</h3>
         <table class="matches-table">
             <thead>
                 <tr>
-                    <th>Home</th>
-                    <th class="text-center">Result</th>
-                    <th class="text-right">Away</th>
+                    <th>{{ _("Home") }}</th>
+                    <th class="text-center">{{ _("Result") }}</th>
+                    <th class="text-right">{{ _("Away") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for match in analysis.worst_scenario.matches %}
                 <tr>
-                    <td{% if match.result == 'home_win' %} class="winner"{% endif %}>{{ match.home_name }}</td>
-                    <td class="text-center">
-                        {% if match.result == 'home_win' %}
-                            Home win
-                        {% elif match.result == 'away_win' %}
-                            Away win
-                        {% else %}
-                            Draw
-                        {% endif %}
-                    </td>
-                    <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
+                    <td{% if match.result=='home_win' %} class="winner" {% endif %}>{{ match.home_name }}</td>
+                        <td class="text-center">
+                            {% if match.result == 'home_win' %}
+                            {{ _("Home win") }}
+                            {% elif match.result == 'away_win' %}
+                            {{ _("Away win") }}
+                            {% else %}
+                            {{ _("Draw") }}
+                            {% endif %}
+                        </td>
+                        <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name
+                            }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-        <p class="no-matches">No remaining matches</p>
+        <p class="no-matches">{{ _("No remaining matches") }}</p>
         {% endif %}
 
-        <h3>Final standings</h3>
+        <h3>{{ _("Final standings") }}</h3>
         <table>
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th>Team</th>
-                    <th class="text-right">Points</th>
+                    <th>{{ _("Team") }}</th>
+                    <th class="text-right">{{ _("Points") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for team in analysis.worst_scenario.standings %}
-                <tr{% if team.team_id == analysis.team_id %} class="highlighted"{% endif %}>
+                <tr{% if team.team_id==analysis.team_id %} class="highlighted" {% endif %}>
                     <td class="text-center">{{ team.position }}</td>
-                    <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{ team.team_name }}{% endif %}</td>
+                    <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{
+                        team.team_name }}{% endif %}</td>
                     <td class="text-right">{{ team.points }}</td>
-                </tr>
-                {% endfor %}
+                    </tr>
+                    {% endfor %}
             </tbody>
         </table>
     </div>

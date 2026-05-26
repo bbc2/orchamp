@@ -1,6 +1,6 @@
 {% if assumptions %}
 <div class="assumptions-panel">
-    <h3>Assumptions</h3>
+    <h3>{{ _("Assumptions") }}</h3>
     <ul class="assumptions-list">
         {% for a in assumptions %}
         <li>
@@ -11,5 +11,5 @@
     </ul>
 </div>
 {% else %}
-<p class="no-assumptions">No assumptions set. Enter scores for upcoming matches to see projected standings.</p>
+<p class="no-assumptions">{{ _("No assumptions set. Enter scores for upcoming matches to see projected standings.") }}</p>
 {% endif %}

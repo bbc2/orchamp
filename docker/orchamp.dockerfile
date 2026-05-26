@@ -40,9 +40,9 @@ USER one
 COPY util/static-dl /usr/local/bin/static-dl
 USER root
 RUN static-dl \
-        --url https://github.com/astral-sh/uv/releases/download/0.9.18/uv-x86_64-unknown-linux-musl.tar.gz \
-        --hash a55ae2d0d53c8f6541bb4d6afc95857ff33a97de8f1d23e9d09acdcb865c4a00 \
-        --out /tmp/uv.tar.gz \
+    --url https://github.com/astral-sh/uv/releases/download/0.9.18/uv-x86_64-unknown-linux-musl.tar.gz \
+    --hash a55ae2d0d53c8f6541bb4d6afc95857ff33a97de8f1d23e9d09acdcb865c4a00 \
+    --out /tmp/uv.tar.gz \
     && mkdir /opt/uv && tar -xf /tmp/uv.tar.gz --strip-components=1 -C /opt/uv
 USER one
 
@@ -73,8 +73,9 @@ COPY --from=builder /home/one/app/.venv /home/one/app/.venv
 COPY src /home/one/app/src
 ENV PYTHONPATH="/home/one/app/src"
 
-# Compile bytecode for faster startup
+# Compile translations and bytecode for faster startup
 USER root
+RUN /home/one/app/.venv/bin/pybabel compile -d /home/one/app/src/orchamp_web/locales
 RUN /home/one/app/.venv/bin/python -m compileall -q /home/one/app/src
 USER one
 

@@ -54,10 +54,20 @@ format: format-python format-json
 update-snapshots:
     pytest --dist no --inline-snapshot create,fix
 
+# Compile translation catalogs (.po → .mo)
+compile-translations:
+    pybabel compile -d src/orchamp_web/locales
+
+# Update translation template and merge into existing catalogs
+update-translations:
+    pybabel extract -F babel.cfg -o src/orchamp_web/locales/messages.pot .
+    pybabel update -i src/orchamp_web/locales/messages.pot -d src/orchamp_web/locales
+
 # Run the dev server
 run:
     #!/usr/bin/env bash
     set -e
+    just compile-translations
     bun run build:static
     python -m http.server 8081 --directory tests &>/dev/null &
     HTTP_PID=$!

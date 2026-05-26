@@ -3,24 +3,24 @@
 {% block title %}{{ league.name }} - Orchamp{% endblock %}
 
 {% block content %}
-<p><a href="/">← All leagues</a></p>
+<p><a href="/">{{ _("← All leagues") }}</a></p>
 
 <div class="header">
     <div>
         <h1>{{ league.name }}</h1>
-        <a class="source-link" href="{{ league.url }}" target="_blank">Source data ↗</a>
+        <a class="source-link" href="{{ league.url }}" target="_blank">{{ _("Source data ↗") }}</a>
     </div>
     <button class="refresh-btn"
         data-base-url="/web/{{ league_key }}/standings-table"
         hx-get="/web/{{ league_key }}/standings-table"
         hx-target="#standings-table"
         hx-swap="innerHTML">
-        Refresh
+        {{ _("Refresh") }}
     </button>
 </div>
 
 <div id="assumptions-panel">
-    <p class="no-assumptions">No assumptions set. Enter scores for upcoming matches to see projected standings.</p>
+    <p class="no-assumptions">{{ _("No assumptions set. Enter scores for upcoming matches to see projected standings.") }}</p>
 </div>
 
 <div id="standings-table">
@@ -28,17 +28,17 @@
 </div>
 
 {% if rounds %}
-<h2>Match schedule</h2>
+<h2>{{ _("Match schedule") }}</h2>
 <table class="schedule-table">
     <thead>
         <tr>
-            <th class="col-round">Round</th>
-            <th class="col-date">Date</th>
-            <th class="col-home">Home</th>
+            <th class="col-round">{{ _("Round") }}</th>
+            <th class="col-date">{{ _("Date") }}</th>
+            <th class="col-home">{{ _("Home") }}</th>
             <th class="col-score-home"></th>
             <th class="col-sep"></th>
             <th class="col-score-away"></th>
-            <th class="col-away">Away</th>
+            <th class="col-away">{{ _("Away") }}</th>
         </tr>
     </thead>
     <tbody>

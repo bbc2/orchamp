@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from orchamp_web.config import AppConfig
+from orchamp_web.i18n import SUPPORTED_LOCALES, load_translations, make_locale_context
 from orchamp_web.logs import configure_logging
 from orchamp_web.routes import router
 
@@ -92,7 +93,15 @@ def create() -> FastAPI:
         lifespan=lifespan,
     )
     app.state.config = config
-    app.state.templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+    translations_by_locale = {
+        locale: load_translations(locale) for locale in SUPPORTED_LOCALES
+    }
+    app.state.templates = Jinja2Templates(
+        directory=Path(__file__).parent / "templates",
+        context_processors=[make_locale_context(translations_by_locale)],
+    )
+
     app.mount(
         path="/static",
         app=StaticFiles(directory=Path(__file__).parent / "static"),

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ locale }}">
 
 <head>
     <meta charset="UTF-8">
@@ -349,11 +349,40 @@
         .assumptions-banner li {
             margin: 0.25rem 0;
         }
+
+        .lang-switcher {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lang-switcher a {
+            color: var(--fg);
+            opacity: 0.5;
+            text-decoration: none;
+        }
+
+        .lang-switcher a.active {
+            opacity: 1;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .lang-switcher a:hover {
+            opacity: 0.8;
+            text-decoration: none;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <nav class="lang-switcher">
+            <a href="/set-lang?lang=en"{% if locale == "en" %} class="active"{% endif %}>EN</a>
+            <a href="/set-lang?lang=fr"{% if locale == "fr" %} class="active"{% endif %}>FR</a>
+        </nav>
         {% block content %}{% endblock %}
     </div>
 </body>

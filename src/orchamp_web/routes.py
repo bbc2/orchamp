@@ -7,7 +7,7 @@ from typing import Annotated
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from orchamp_web.assumptions import (
@@ -18,9 +18,32 @@ from orchamp_web.assumptions import (
 from orchamp_web.auth import require_basic_auth
 from orchamp_web.cache import DiskContentStore, DiskRootStore
 from orchamp_web.config import AppConfig
+from orchamp_web.i18n import SUPPORTED_LOCALES
 from orchamp_web.services import StandingsService
 
 router = APIRouter(dependencies=[Depends(require_basic_auth)])
+
+
+@router.get("/set-lang", response_class=RedirectResponse, include_in_schema=False)
+def set_lang(
+    request: Request,
+    lang: str,
+) -> RedirectResponse:
+    """
+    Set the language cookie and redirect back to the referring page.
+    """
+    if lang not in SUPPORTED_LOCALES:
+        lang = "en"
+    redirect_to = request.headers.get("referer", "/")
+    response = RedirectResponse(url=redirect_to, status_code=303)
+    response.set_cookie(
+        key="lang",
+        value=lang,
+        max_age=365 * 24 * 3600,
+        samesite="lax",
+        httponly=False,
+    )
+    return response
 
 
 def get_config(request: Request) -> AppConfig:
