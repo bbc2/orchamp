@@ -77,25 +77,24 @@
             <thead>
                 <tr>
                     <th>{{ _("Home") }}</th>
-                    <th class="text-center">{{ _("Result") }}</th>
-                    <th class="text-right">{{ _("Away") }}</th>
+                    <th>{{ _("Away") }}</th>
+                    <th class="text-right">{{ _("Result") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for match in analysis.best_scenario.matches %}
                 <tr>
-                    <td{% if match.result=='home_win' %} class="winner" {% endif %}>{{ match.home_name }}</td>
-                        <td class="text-center">
-                            {% if match.result == 'home_win' %}
-                            {{ _("Home win") }}
-                            {% elif match.result == 'away_win' %}
-                            {{ _("Away win") }}
-                            {% else %}
-                            {{ _("Draw") }}
-                            {% endif %}
-                        </td>
-                        <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name
-                            }}</td>
+                    <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{ match.home_name }}{% endif %}</td>
+                    <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{ match.away_name }}{% endif %}</td>
+                    <td class="text-right">
+                        {% if match.result == 'home_win' %}
+                        {{ match.home_name }}
+                        {% elif match.result == 'away_win' %}
+                        {{ match.away_name }}
+                        {% else %}
+                        {{ _("Draw") }}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -135,25 +134,24 @@
             <thead>
                 <tr>
                     <th>{{ _("Home") }}</th>
-                    <th class="text-center">{{ _("Result") }}</th>
-                    <th class="text-right">{{ _("Away") }}</th>
+                    <th>{{ _("Away") }}</th>
+                    <th class="text-right">{{ _("Result") }}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for match in analysis.worst_scenario.matches %}
                 <tr>
-                    <td{% if match.result=='home_win' %} class="winner" {% endif %}>{{ match.home_name }}</td>
-                        <td class="text-center">
-                            {% if match.result == 'home_win' %}
-                            {{ _("Home win") }}
-                            {% elif match.result == 'away_win' %}
-                            {{ _("Away win") }}
-                            {% else %}
-                            {{ _("Draw") }}
-                            {% endif %}
-                        </td>
-                        <td class="text-right{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name
-                            }}</td>
+                    <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{ match.home_name }}{% endif %}</td>
+                    <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{ match.away_name }}{% endif %}</td>
+                    <td class="text-right">
+                        {% if match.result == 'home_win' %}
+                        {{ match.home_name }}
+                        {% elif match.result == 'away_win' %}
+                        {{ match.away_name }}
+                        {% else %}
+                        {{ _("Draw") }}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
