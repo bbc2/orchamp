@@ -30,6 +30,7 @@ def make_locale_context(
         return {
             "locale": locale,
             "_": translations_by_locale[locale].gettext,
+            "pgettext": translations_by_locale[locale].pgettext,
         }
 
     return locale_context

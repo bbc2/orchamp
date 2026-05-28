@@ -27,8 +27,10 @@ msgid "Available Leagues"
 msgstr "Ligues disponibles"
 
 #: src/orchamp_web/templates/standings.html:6
-msgid "← Home"
-msgstr "← Accueil"
+#: src/orchamp_web/templates/team_analysis.html:7
+msgctxt "nav"
+msgid "Home"
+msgstr "Accueil"
 
 #: src/orchamp_web/templates/standings.html:11
 msgid "Source data ↗"

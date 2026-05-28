@@ -26,7 +26,9 @@ msgid "Available Leagues"
 msgstr ""
 
 #: src/orchamp_web/templates/standings.html:6
-msgid "← Home"
+#: src/orchamp_web/templates/team_analysis.html:7
+msgctxt "nav"
+msgid "Home"
 msgstr ""
 
 #: src/orchamp_web/templates/standings.html:11

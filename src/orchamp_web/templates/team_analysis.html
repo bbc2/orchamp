@@ -3,7 +3,13 @@
 {% block title %}{{ analysis.team_name }} - {{ league.name }} - Orchamp{% endblock %}
 
 {% block content %}
-<p><a href="/web/{{ league_key }}/{% if assumption_qs %}?{{ assumption_qs }}{% endif %}">← {{ league.name }}</a></p>
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a href="/">{{ pgettext("nav", "Home") }}</a>
+    <span class="breadcrumb-sep" aria-hidden="true">›</span>
+    <a href="/web/{{ league_key }}/{% if assumption_qs %}?{{ assumption_qs }}{% endif %}">{{ league.name }}</a>
+    <span class="breadcrumb-sep" aria-hidden="true">›</span>
+    <span>{{ analysis.team_name }}</span>
+</nav>
 
 <div class="header">
     <div>

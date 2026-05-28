@@ -3,7 +3,11 @@
 {% block title %}{{ league.name }} - Orchamp{% endblock %}
 
 {% block content %}
-<p><a href="/">{{ _("← Home") }}</a></p>
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a href="/">{{ pgettext("nav", "Home") }}</a>
+    <span class="breadcrumb-sep" aria-hidden="true">›</span>
+    <span>{{ league.name }}</span>
+</nav>
 
 <div class="header">
     <div>
