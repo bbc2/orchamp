@@ -1,0 +1,27 @@
+services:
+  fixture-server:
+    image: python:3-slim
+    command: python -m http.server 8181
+    working_dir: /data
+    volumes:
+      - ../tests:/data:ro
+    networks:
+      - e2e-net
+
+  orchamp:
+    build:
+      context: ..
+      dockerfile: docker/orchamp.dockerfile
+    ports:
+      - "18080:8080"
+    volumes:
+      - ../tests/e2e/docker_config.toml:/home/one/app/config.toml:ro
+    environment:
+      - ORCHAMP_BETA_PASSWORD=e2e-test-password
+    depends_on:
+      - fixture-server
+    networks:
+      - e2e-net
+
+networks:
+  e2e-net:

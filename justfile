@@ -6,7 +6,7 @@ help:
 
 # Run Python tests
 test-python:
-    pytest --numprocesses auto --maxprocesses 4
+    pytest --numprocesses auto --maxprocesses 4 --ignore=tests/e2e
 
 # Run tests
 test: test-python
@@ -76,6 +76,38 @@ run:
         ORCHAMP_CONFIG=_local/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
         uvicorn --factory --reload orchamp_web.app:create
+
+# Build the Docker image and run E2E tests against it
+docker-e2e *args="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    COMPOSE="docker compose -f docker/compose.e2e.yml"
+
+    # Clean up after run, even if we exit early due to an error
+    trap "$COMPOSE down --volumes 2>/dev/null || true" EXIT
+
+    # Run the app with an end-to-end-specific configuration
+    $COMPOSE up --build --detach
+
+    # Wait for the app to be ready
+    echo "Waiting for app to be ready..."
+    for i in $(seq 1 30); do
+        if curl --silent --fail --user ":e2e-test-password" http://localhost:18080/ >/dev/null 2>&1; then
+            echo "App is ready."
+            break
+        fi
+        if [ "$i" -eq 30 ]; then
+            echo "Timed out waiting for app" >&2
+            exit 1
+        fi
+        sleep 1
+    done
+
+    # Run the test client
+    E2E_BASE_URL=http://localhost:18080 \
+    E2E_PASSWORD=e2e-test-password \
+    pytest tests/e2e/ -v {{ args }}
 
 # Build the Docker image
 docker-build:

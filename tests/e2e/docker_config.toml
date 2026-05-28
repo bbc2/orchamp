@@ -1,0 +1,4 @@
+[leagues."small"]
+source = "json"
+url = "http://fixture-server:8181/orchamp/cli/data/small_league.json"
+name = "Small League"
