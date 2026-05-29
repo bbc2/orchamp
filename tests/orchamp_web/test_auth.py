@@ -56,7 +56,8 @@ class TestRequireBasicAuth:
             require_basic_auth(credentials=None)
 
         assert exc_info.value.headers is not None
-        assert exc_info.value.headers.get("WWW-Authenticate") == "Basic"
+        assert exc_info.value.headers.get("WWW-Authenticate") == 'Basic realm="Orchamp"'
+        assert exc_info.value.headers.get("Connection") == "close"
 
     def test_empty_env_var_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "")

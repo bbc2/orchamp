@@ -31,7 +31,10 @@ def require_basic_auth(
         raise HTTPException(
             status_code=401,
             detail="Authentication required",
-            headers={"WWW-Authenticate": "Basic"},
+            headers={
+                "WWW-Authenticate": 'Basic realm="Orchamp"',
+                "Connection": "close",
+            },
         )
 
     password_matches = hmac.compare_digest(
@@ -43,5 +46,8 @@ def require_basic_auth(
         raise HTTPException(
             status_code=401,
             detail="Incorrect password",
-            headers={"WWW-Authenticate": "Basic"},
+            headers={
+                "WWW-Authenticate": 'Basic realm="Orchamp"',
+                "Connection": "close",
+            },
         )
