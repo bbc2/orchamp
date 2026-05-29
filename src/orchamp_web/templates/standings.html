@@ -2,6 +2,8 @@
 
 {% block title %}{{ league.name }} - Orchamp{% endblock %}
 
+{% block main_class %}main-content--wide{% endblock %}
+
 {% block content %}
 <nav class="breadcrumb" aria-label="breadcrumb">
     <a href="/">{{ pgettext("nav", "Home") }}</a>
@@ -20,26 +22,31 @@
     </button>
 </div>
 
-<div id="assumptions-panel">
-    <p class="no-assumptions">{{ _("No assumptions set. Enter scores for upcoming matches to see projected standings.")
-        }}</p>
-</div>
+<div class="standings-layout">
+    <div class="standings-main">
+        <div id="standings-table">
+            {% if lazy %}
+            <div class="loading">{{ _("Loading…") }}</div>
+            {% else %}
+            {% include "partials/standings_table.html" %}
+            {% endif %}
+        </div>
 
-<div id="standings-table">
-    {% if lazy %}
-    <div class="loading">{{ _("Loading…") }}</div>
-    {% else %}
-    {% include "partials/standings_table.html" %}
-    {% endif %}
-</div>
+        <div id="schedule" {% if lazy %} hx-get="/web/{{ league_key }}/schedule" hx-trigger="load" hx-swap="innerHTML" {%
+            endif %}>
+            {% if lazy %}
+            <div class="loading">{{ _("Loading…") }}</div>
+            {% else %}
+            {% include "partials/schedule.html" %}
+            {% endif %}
+        </div>
+    </div>
 
-<div id="schedule" {% if lazy %} hx-get="/web/{{ league_key }}/schedule" hx-trigger="load" hx-swap="innerHTML" {% endif
-    %}>
-    {% if lazy %}
-    <div class="loading">{{ _("Loading…") }}</div>
-    {% else %}
-    {% include "partials/schedule.html" %}
-    {% endif %}
+    <aside class="assumptions-sidebar">
+        <div id="assumptions-panel">
+            <p class="no-assumptions">{{ _("No assumptions set. Enter scores for upcoming matches to see projected standings.") }}</p>
+        </div>
+    </aside>
 </div>
 
 <script src="/static/assumptions.js"></script>
