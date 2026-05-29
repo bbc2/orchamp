@@ -24,7 +24,8 @@ WORKDIR /home/one/app
 
 COPY package.json bun.lockb ./
 RUN /opt/bun install
-COPY --chown=one:one src/orchamp_web/static/assumptions.js src/orchamp_web/static/assumptions.js
+COPY --chown=one:one assets ./assets
+COPY --chown=one:one util ./util
 RUN /opt/bun run build:static
 
 # Stage: Python app building

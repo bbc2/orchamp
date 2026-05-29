@@ -17,12 +17,12 @@ lint-python:
     ruff check {{ python_srcs }}
     ruff format --check --diff {{ python_srcs }}
 
-# Lint JSON files
-lint-json:
+# Lint JavaScript + JSON files
+lint-js:
     biome check --linter-enabled=true --formatter-enabled=false .
 
 # Run all linters
-lint: lint-python lint-json
+lint: lint-python lint-js
 
 # Run all checks (lint + test)
 check: lint test
@@ -31,24 +31,24 @@ check: lint test
 fix-python:
     ruff check --fix {{ python_srcs }}
 
-# Fix JSON linter errors
-fix-json:
+# Fix JavaScript + JSON linter errors
+fix-js:
     biome check --write .
 
 # Fix all fixable issues and format
-fix: fix-python fix-json
+fix: fix-python fix-js
 
 # Format Python code
 format-python:
     ruff check --select I --fix {{ python_srcs }}
     ruff format {{ python_srcs }}
 
-# Format JSON files
-format-json:
+# Format JavaScript + JSON files
+format-js:
     biome format --write .
 
 # Format all code
-format: format-python format-json
+format: format-python format-js
 
 # Update test snapshots
 update-snapshots:

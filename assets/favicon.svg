@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Orchamp">
+  <!-- Ping-pong paddle: green blade, dark-grey handle, soft outline, tilted 45° right. -->
+  <g transform="rotate(45 16 16)">
+    <g fill="none" stroke="#cfcfcf" stroke-width="2" stroke-linejoin="round">
+      <rect x="13.25" y="14" width="5.5" height="15.5" rx="2.75"/>
+      <circle cx="16" cy="10" r="9.5"/>
+    </g>
+    <rect x="13.25" y="14" width="5.5" height="15.5" rx="2.75" fill="#4b5563"/>
+    <circle cx="16" cy="10" r="9.5" fill="#1aa64a"/>
+  </g>
+</svg>

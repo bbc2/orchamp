@@ -24,7 +24,8 @@
 
 <div class="standings-layout">
     <div class="standings-main">
-        <div id="standings-table">
+        <div id="standings-table" {% if lazy %} hx-get="/web/{{ league_key }}/standings-table" hx-trigger="load"
+            hx-swap="innerHTML" {% endif %}>
             {% if lazy %}
             <div class="loading">{{ _("Loading…") }}</div>
             {% else %}
@@ -51,18 +52,21 @@
 
 <script src="/static/assumptions.js"></script>
 <script>
-    {% if lazy %}
-    document.getElementById('schedule').addEventListener('htmx:afterSwap', function () {
+    // The pending-match rows (and the inputs we wire up) live in the schedule,
+    // so init runs once the schedule is present: immediately when eager, or on
+    // its lazy htmx swap. The standings table loads independently.
+    function orchampStandingsInit() {
         var validMatchKeys = Array.from(
             document.querySelectorAll('tr.match-pending[data-home-id]')
         ).map(function (r) { return r.dataset.homeId + ':' + r.dataset.awayId; });
         orchampInitStandingsPage('{{ league_key }}', validMatchKeys);
+    }
+    {% if lazy %}
+    document.getElementById('schedule').addEventListener('htmx:afterSwap', function () {
+        orchampStandingsInit();
     });
     {% else %}
-    var validMatchKeys = Array.from(
-        document.querySelectorAll('tr.match-pending[data-home-id]')
-    ).map(function (r) { return r.dataset.homeId + ':' + r.dataset.awayId; });
-    orchampInitStandingsPage('{{ league_key }}', validMatchKeys);
+    orchampStandingsInit();
     {% endif %}
 </script>
 {% endblock %}

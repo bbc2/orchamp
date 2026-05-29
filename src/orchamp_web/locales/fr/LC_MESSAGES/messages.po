@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-26 14:15+0200\n"
+"POT-Creation-Date: 2026-05-29 14:46+0200\n"
 "PO-Revision-Date: 2026-05-26 14:15+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,136 +18,133 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#: src/orchamp_web/templates/base.html:712
+msgid "Skip to content"
+msgstr "Aller au contenu"
+
+#: src/orchamp_web/templates/base.html:724
+msgid "Switch theme"
+msgstr "Changer de thème"
+
+#: src/orchamp_web/templates/base.html:721
+msgid "Theme: dark"
+msgstr "Thème : sombre"
+
+#: src/orchamp_web/templates/base.html:722
+msgid "Theme: light"
+msgstr "Thème : clair"
+
+#: src/orchamp_web/templates/base.html:723
+msgid "Theme: system"
+msgstr "Thème : système"
+
 #: src/orchamp_web/templates/index.html:7
 msgid "Table tennis championship standings with tiebreaker rules."
 msgstr "Classements de championnat de tennis de table avec règles de départage."
 
-#: src/orchamp_web/templates/index.html:9
-msgid "Available Leagues"
-msgstr "Ligues disponibles"
-
-#: src/orchamp_web/templates/standings.html:6
+#: src/orchamp_web/templates/standings.html:9
 #: src/orchamp_web/templates/team_analysis.html:7
 msgctxt "nav"
 msgid "Home"
 msgstr "Accueil"
 
-#: src/orchamp_web/templates/standings.html:11
+#: src/orchamp_web/templates/standings.html:17
 msgid "Source data ↗"
 msgstr "Données source ↗"
 
-#: src/orchamp_web/templates/standings.html:18
+#: src/orchamp_web/templates/standings.html:21
 msgid "Refresh"
 msgstr "Actualiser"
 
+#: src/orchamp_web/templates/standings.html:29
+#: src/orchamp_web/templates/standings.html:38
+msgid "Loading…"
+msgstr ""
+
 #: src/orchamp_web/templates/partials/assumptions_panel.html:14
-#: src/orchamp_web/templates/standings.html:23
+#: src/orchamp_web/templates/standings.html:47
 msgid ""
 "No assumptions set. Enter scores for upcoming matches to see projected "
 "standings."
 msgstr ""
-"Aucune hypothèse définie. Entrez des scores pour les prochains matchs pour voir "
-"les classements projetés."
-
-#: src/orchamp_web/templates/standings.html:31
-msgid "Match schedule"
-msgstr "Calendrier des matchs"
-
-#: src/orchamp_web/templates/standings.html:35
-msgid "Round"
-msgstr "Tour"
-
-#: src/orchamp_web/templates/standings.html:36
-msgid "Date"
-msgstr "Date"
-
-#: src/orchamp_web/templates/standings.html:37
-#: src/orchamp_web/templates/team_analysis.html:73
-#: src/orchamp_web/templates/team_analysis.html:131
-msgid "Home"
-msgstr "Domicile"
-
-#: src/orchamp_web/templates/standings.html:41
-#: src/orchamp_web/templates/team_analysis.html:75
-#: src/orchamp_web/templates/team_analysis.html:133
-msgid "Away"
-msgstr "Extérieur"
-
-#: src/orchamp_web/templates/team_analysis.html:11
+"Aucune hypothèse définie. Entrez des scores pour les prochains matchs "
+"pour voir les classements projetés."
 msgid "Position analysis"
 msgstr "Analyse de position"
 
-#: src/orchamp_web/templates/team_analysis.html:17
+#: src/orchamp_web/templates/team_analysis.html:23
 msgid "Assumptions applied:"
 msgstr "Hypothèses appliquées :"
 
-#: src/orchamp_web/templates/team_analysis.html:28
+#: src/orchamp_web/templates/team_analysis.html:34
 msgid "Best possible"
 msgstr "Meilleur possible"
 
-#: src/orchamp_web/templates/team_analysis.html:32
+#: src/orchamp_web/templates/team_analysis.html:38
 msgid "Worst possible"
 msgstr "Pire possible"
 
-#: src/orchamp_web/templates/team_analysis.html:37
+#: src/orchamp_web/templates/team_analysis.html:43
 msgid "Current standings"
 msgstr "Classement actuel"
 
 #: src/orchamp_web/templates/partials/standings_table.html:5
-#: src/orchamp_web/templates/team_analysis.html:42
-#: src/orchamp_web/templates/team_analysis.html:106
-#: src/orchamp_web/templates/team_analysis.html:164
+#: src/orchamp_web/templates/team_analysis.html:49
+#: src/orchamp_web/templates/team_analysis.html:116
+#: src/orchamp_web/templates/team_analysis.html:177
 msgid "Team"
 msgstr "Équipe"
 
 #: src/orchamp_web/templates/partials/standings_table.html:6
-#: src/orchamp_web/templates/team_analysis.html:43
-#: src/orchamp_web/templates/team_analysis.html:107
-#: src/orchamp_web/templates/team_analysis.html:165
+#: src/orchamp_web/templates/team_analysis.html:50
+#: src/orchamp_web/templates/team_analysis.html:117
+#: src/orchamp_web/templates/team_analysis.html:178
 msgid "Points"
 msgstr "Points"
 
-#: src/orchamp_web/templates/team_analysis.html:66
+#: src/orchamp_web/templates/team_analysis.html:74
 #, python-format
 msgid "Best case scenario (position %(pos)s)"
 msgstr "Meilleur scénario (position %(pos)s)"
 
-#: src/orchamp_web/templates/team_analysis.html:69
-#: src/orchamp_web/templates/team_analysis.html:127
+#: src/orchamp_web/templates/team_analysis.html:77
+#: src/orchamp_web/templates/team_analysis.html:138
 msgid "Required results"
 msgstr "Résultats requis"
 
-#: src/orchamp_web/templates/team_analysis.html:74
-#: src/orchamp_web/templates/team_analysis.html:132
+#: src/orchamp_web/templates/partials/schedule.html:8
+#: src/orchamp_web/templates/team_analysis.html:82
+#: src/orchamp_web/templates/team_analysis.html:143
+msgid "Home"
+msgstr "Domicile"
+
+#: src/orchamp_web/templates/partials/schedule.html:12
+#: src/orchamp_web/templates/team_analysis.html:83
+#: src/orchamp_web/templates/team_analysis.html:144
+msgid "Away"
+msgstr "Extérieur"
+
+#: src/orchamp_web/templates/team_analysis.html:84
+#: src/orchamp_web/templates/team_analysis.html:145
 msgid "Result"
 msgstr "Résultat"
 
-#: src/orchamp_web/templates/team_analysis.html:84
-#: src/orchamp_web/templates/team_analysis.html:142
-msgid "Home win"
-msgstr "Victoire à domicile"
-
-#: src/orchamp_web/templates/team_analysis.html:86
-#: src/orchamp_web/templates/team_analysis.html:144
-msgid "Away win"
-msgstr "Victoire à l'extérieur"
-
-#: src/orchamp_web/templates/team_analysis.html:88
-#: src/orchamp_web/templates/team_analysis.html:146
+#: src/orchamp_web/templates/team_analysis.html:98
+#: src/orchamp_web/templates/team_analysis.html:159
 msgid "Draw"
 msgstr "Match nul"
 
-#: src/orchamp_web/templates/team_analysis.html:98
-#: src/orchamp_web/templates/team_analysis.html:156
+#: src/orchamp_web/templates/team_analysis.html:107
+#: src/orchamp_web/templates/team_analysis.html:168
 msgid "No remaining matches"
 msgstr "Aucun match restant"
 
-#: src/orchamp_web/templates/team_analysis.html:101
-#: src/orchamp_web/templates/team_analysis.html:159
+#: src/orchamp_web/templates/team_analysis.html:110
+#: src/orchamp_web/templates/team_analysis.html:171
 msgid "Final standings"
 msgstr "Classement final"
 
-#: src/orchamp_web/templates/team_analysis.html:124
+#: src/orchamp_web/templates/team_analysis.html:135
 #, python-format
 msgid "Worst case scenario (position %(pos)s)"
 msgstr "Pire scénario (position %(pos)s)"
@@ -156,6 +153,31 @@ msgstr "Pire scénario (position %(pos)s)"
 msgid "Assumptions"
 msgstr "Hypothèses"
 
+#: src/orchamp_web/templates/partials/assumptions_panel.html:8
+msgid "Remove assumption"
+msgstr "Supprimer l'hypothèse"
+
+#: src/orchamp_web/templates/partials/schedule.html:2
+msgid "Match schedule"
+msgstr "Calendrier des matchs"
+
+#: src/orchamp_web/templates/partials/schedule.html:6
+msgid "Round"
+msgstr "Tour"
+
+#: src/orchamp_web/templates/partials/schedule.html:7
+msgid "Date"
+msgstr "Date"
+
 #: src/orchamp_web/templates/partials/standings_table.html:7
 msgid "Best–Worst"
 msgstr "Meilleur–Pire"
+
+#~ msgid "Available Leagues"
+#~ msgstr "Ligues disponibles"
+
+#~ msgid "Home win"
+#~ msgstr "Victoire à domicile"
+
+#~ msgid "Away win"
+#~ msgstr "Victoire à l'extérieur"

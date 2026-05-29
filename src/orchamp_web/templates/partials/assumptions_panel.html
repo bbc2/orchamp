@@ -5,7 +5,7 @@
         {% for a in assumptions %}
         <li>
             <span><strong>{{ a.home_name }}</strong> {{ a.home_score }}–{{ a.away_score }} <strong>{{ a.away_name }}</strong></span>
-            <button class="remove-btn" onclick="orchampRemoveAssumption('{{ a.home_id }}', '{{ a.away_id }}')">×</button>
+            <button class="remove-btn" data-home-id="{{ a.home_id }}" data-away-id="{{ a.away_id }}" aria-label="{{ _('Remove assumption') }}" title="{{ _('Remove assumption') }}">×</button>
         </li>
         {% endfor %}
     </ul>

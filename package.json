@@ -1,8 +1,10 @@
 {
   "scripts": {
-    "build:static": "cp node_modules/htmx.org/dist/htmx.min.js src/orchamp_web/static/"
+    "build:static": "bun util/build-static.js"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
     "htmx.org": "^2.0.4"
   },
   "devDependencies": {

@@ -12,8 +12,8 @@
             <th class="col-away">{{ _("Away") }}</th>
         </tr>
     </thead>
+    {% for round in rounds %}
     <tbody>
-        {% for round in rounds %}
         {% for match in round.matches %}
         <tr class="{% if match.result %}match-completed{% else %}match-pending{% endif %}" {% if not match.result %}
             data-home-id="{{ match.home_id }}" data-away-id="{{ match.away_id }}" {% endif %}>
@@ -32,7 +32,7 @@
             <td class="col-away{% if match.result == 'away_win' %} winner{% endif %}">{{ match.away_name }}</td>
         </tr>
         {% endfor %}
-        {% endfor %}
     </tbody>
+    {% endfor %}
 </table>
 {% endif %}
