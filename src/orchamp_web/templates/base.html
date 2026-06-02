@@ -77,6 +77,11 @@
             --accent-text: #4ade80;
             --accent-contrast: #07120b;
             --row-hover: color-mix(in srgb, var(--accent) 13%, transparent);
+            /* Amber accent for hypothetical data: user assumptions and
+               projected/predicted results. */
+            --predict: #f59e0b;
+            --predict-text: #fbbf24;
+            --predict-contrast: #1c1206;
             color-scheme: dark;
         }
 
@@ -90,6 +95,9 @@
             --accent-text: #15803d;
             --accent-contrast: #ffffff;
             --row-hover: color-mix(in srgb, var(--accent) 7%, transparent);
+            --predict: #d97706;
+            --predict-text: #b45309;
+            --predict-contrast: #ffffff;
             color-scheme: light;
         }
 
@@ -601,8 +609,13 @@
             font-size: 2.25rem;
             font-weight: 700;
             line-height: 1.1;
-            color: var(--accent-text);
+            color: var(--predict-text);
             font-variant-numeric: tabular-nums;
+        }
+
+        td.col-best-worst {
+            color: var(--predict-text);
+            font-weight: 600;
         }
 
         .scenarios {
@@ -614,6 +627,11 @@
 
         .scenario h2 {
             margin-top: 0;
+            color: var(--predict-text);
+        }
+
+        .scenario h2::before {
+            background: var(--predict);
         }
 
         .scenario h3 {
@@ -747,14 +765,17 @@
             opacity: 1;
         }
 
+        /* Score inputs are where the user enters assumptions, so they carry the
+           amber accent: an amber border, and amber text once a value is typed. */
         .score-input {
             width: 2.5rem;
             padding: 0.125rem 0.25rem;
-            border: 1px solid var(--border);
+            border: 1px solid color-mix(in srgb, var(--predict) 45%, var(--border));
             border-radius: 3px;
             background: var(--bg);
             box-sizing: border-box;
-            color: var(--fg);
+            color: var(--predict-text);
+            font-weight: 600;
             font-size: 0.875rem;
             text-align: center;
             font-variant-numeric: tabular-nums;
@@ -767,7 +788,7 @@
         }
 
         .score-input:focus {
-            outline: 2px solid var(--accent);
+            outline: 2px solid var(--predict);
             outline-offset: 1px;
         }
 
@@ -776,10 +797,10 @@
         }
 
         .assumptions-panel {
-            border: 1px solid var(--border);
+            border: 1px solid color-mix(in srgb, var(--predict) 35%, var(--border));
             border-radius: 6px;
             padding: 1rem;
-            background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+            background: color-mix(in srgb, var(--predict) 8%, var(--bg));
         }
 
         .assumptions-panel h3 {
@@ -787,7 +808,7 @@
             font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--accent-text);
+            color: var(--predict-text);
         }
 
         .assumptions-panel h3:not(:first-child) {
@@ -834,12 +855,16 @@
         }
 
         .assumptions-banner {
-            border: 1px solid var(--accent);
+            border: 1px solid color-mix(in srgb, var(--predict) 55%, var(--border));
             border-radius: 6px;
             padding: 0.75rem 1rem;
             margin-bottom: 1.5rem;
-            background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+            background: color-mix(in srgb, var(--predict) 10%, var(--bg));
             font-size: 0.9rem;
+        }
+
+        .assumptions-banner strong {
+            color: var(--predict-text);
         }
 
         .assumptions-banner ul {
