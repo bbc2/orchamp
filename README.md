@@ -43,3 +43,29 @@ This outputs JSON in the following form:
   }
 }
 ```
+
+## Development
+
+### Checks
+
+Run all checks (lint + tests):
+
+```bash
+just check
+```
+
+### Dev server
+
+Run the dev server on http://localhost:8000:
+
+```bash
+just run
+```
+
+### Translations
+
+To add or update translatable strings:
+
+- Run `just update-translations`
+- Edit the `.po` files under `src/orchamp_web/locales/`
+- Run `just compile-translations`
