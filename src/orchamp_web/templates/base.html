@@ -23,7 +23,7 @@
                 var de = document.documentElement;
                 de.setAttribute('data-theme', effective);
                 de.setAttribute('data-theme-mode', mode);
-            } catch (e) {}
+            } catch (e) { }
         })();
     </script>
     <script src="/static/htmx.min.js"></script>
@@ -512,30 +512,28 @@
         }
 
         .refresh-btn {
-            background: var(--accent);
-            color: var(--accent-contrast);
-            border: none;
-            padding: 0.5rem 1rem;
+            background: none;
+            color: var(--fg);
+            border: 1px solid currentColor;
+            padding: 0.1rem 0.5rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            vertical-align: middle;
+            margin-left: 0.75rem;
         }
 
         .refresh-btn:hover {
-            opacity: 0.9;
+            opacity: 1;
         }
 
         .refresh-btn.htmx-request {
-            opacity: 0.5;
+            opacity: 0.3;
             cursor: wait;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
             margin-bottom: 1rem;
         }
 
@@ -672,19 +670,25 @@
         }
 
         @keyframes loading-appear {
-            to { opacity: 0.6; }
+            to {
+                opacity: 0.6;
+            }
         }
 
         @keyframes loading-spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             .loading,
             .loading::before {
                 animation: none;
                 opacity: 0.6;
             }
+
             .skip-link {
                 transition: none;
             }
@@ -850,24 +854,21 @@
             <div class="nav-scroll">
                 <a href="/" class="nav-brand">Orchamp</a>
                 {% for key, short_name in nav_leagues %}
-                <a href="/web/{{ key }}/" class="nav-league{% if key == current_league_key %} active{% endif %}"{% if key == current_league_key %} aria-current="page"{% endif %}>{{
+                <a href="/web/{{ key }}/" class="nav-league{% if key == current_league_key %} active{% endif %}" {% if
+                    key==current_league_key %} aria-current="page" {% endif %}>{{
                     short_name }}</a>
                 {% endfor %}
             </div>
             <div class="nav-controls">
-                <button type="button" class="theme-toggle" id="theme-toggle"
-                    data-label-dark="{{ _('Theme: dark') }}"
-                    data-label-light="{{ _('Theme: light') }}"
-                    data-label-system="{{ _('Theme: system') }}"
+                <button type="button" class="theme-toggle" id="theme-toggle" data-label-dark="{{ _('Theme: dark') }}"
+                    data-label-light="{{ _('Theme: light') }}" data-label-system="{{ _('Theme: system') }}"
                     aria-label="{{ _('Switch theme') }}" title="{{ _('Switch theme') }}">
-                    <svg class="theme-icon theme-icon--dark" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" aria-hidden="true">
+                    <svg class="theme-icon theme-icon--dark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
-                    <svg class="theme-icon theme-icon--light" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" aria-hidden="true">
+                    <svg class="theme-icon theme-icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="5" />
                         <line x1="12" y1="1" x2="12" y2="3" />
                         <line x1="12" y1="21" x2="12" y2="23" />
@@ -878,8 +879,8 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                     </svg>
-                    <svg class="theme-icon theme-icon--system" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <svg class="theme-icon theme-icon--system" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2" aria-hidden="true">
                         <circle cx="12" cy="12" r="9" fill="none" />
                         <path d="M12 3 A9 9 0 0 0 12 21 Z" fill="currentColor" stroke="none" />
                     </svg>
@@ -890,8 +891,7 @@
                 </nav>
                 {% if auth_enabled %}
                 <form method="post" action="/logout" class="nav-logout">
-                    <button type="submit" class="logout-btn" title="{{ _('Log out') }}"
-                        aria-label="{{ _('Log out') }}">
+                    <button type="submit" class="logout-btn" title="{{ _('Log out') }}" aria-label="{{ _('Log out') }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -937,7 +937,7 @@
 
             btn.addEventListener('click', function () {
                 var mode = nextMode[currentMode()] || 'system';
-                try { localStorage.setItem('orchamp-theme', mode); } catch (e) {}
+                try { localStorage.setItem('orchamp-theme', mode); } catch (e) { }
                 apply(mode);
             });
 

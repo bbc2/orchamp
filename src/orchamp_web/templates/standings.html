@@ -15,11 +15,11 @@
     <div>
         <h1>{{ league.name }}</h1>
         <a class="source-link" href="{{ league.url }}" target="_blank">{{ _("Source data ↗") }}</a>
+        <button class="refresh-btn" data-base-url="/web/{{ league_key }}/standings-table"
+            hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table" hx-swap="innerHTML">
+            {{ _("Refresh") }}
+        </button>
     </div>
-    <button class="refresh-btn" data-base-url="/web/{{ league_key }}/standings-table"
-        hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table" hx-swap="innerHTML">
-        {{ _("Refresh") }}
-    </button>
 </div>
 
 <div class="standings-layout">
