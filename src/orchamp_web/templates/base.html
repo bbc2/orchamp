@@ -694,6 +694,11 @@
             }
         }
 
+        .schedule-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
         .schedule-table .col-round {
             font-weight: 600;
             white-space: nowrap;
@@ -713,7 +718,7 @@
 
         .schedule-table .col-score-home {
             text-align: right;
-            width: 2.5rem;
+            width: 3.5rem;
             font-variant-numeric: tabular-nums;
         }
 
@@ -726,7 +731,7 @@
 
         .schedule-table .col-score-away {
             text-align: left;
-            width: 2.5rem;
+            width: 3.5rem;
             font-variant-numeric: tabular-nums;
         }
 
@@ -748,6 +753,7 @@
             border: 1px solid var(--border);
             border-radius: 3px;
             background: var(--bg);
+            box-sizing: border-box;
             color: var(--fg);
             font-size: 0.875rem;
             text-align: center;
