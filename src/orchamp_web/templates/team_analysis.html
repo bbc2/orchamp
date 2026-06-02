@@ -63,8 +63,8 @@
                     {% endif %}
                 </td>
                 <td class="text-right">{{ team.points }}</td>
-            </tr>
-            {% endfor %}
+                </tr>
+                {% endfor %}
         </tbody>
     </table>
 </div>
@@ -74,7 +74,7 @@
         <h2>{{ _("Best case scenario (position %(pos)s)") % {"pos": analysis.best_position} }}</h2>
 
         {% if analysis.best_scenario.matches %}
-        <h3>{{ _("Required results") }}</h3>
+        <h3>{{ _("Example results") }}</h3>
         <div class="table-wrap">
             <table class="matches-table">
                 <thead>
@@ -87,8 +87,10 @@
                 <tbody>
                     {% for match in analysis.best_scenario.matches %}
                     <tr>
-                        <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{ match.home_name }}{% endif %}</td>
-                        <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{ match.away_name }}{% endif %}</td>
+                        <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{
+                            match.home_name }}{% endif %}</td>
+                        <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{
+                            match.away_name }}{% endif %}</td>
                         <td class="text-right">
                             {% if match.result == 'home_win' %}
                             {{ match.home_name }}
@@ -124,8 +126,8 @@
                         <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{
                             team.team_name }}{% endif %}</td>
                         <td class="text-right">{{ team.points }}</td>
-                    </tr>
-                    {% endfor %}
+                        </tr>
+                        {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -135,7 +137,7 @@
         <h2>{{ _("Worst case scenario (position %(pos)s)") % {"pos": analysis.worst_position} }}</h2>
 
         {% if analysis.worst_scenario.matches %}
-        <h3>{{ _("Required results") }}</h3>
+        <h3>{{ _("Example results") }}</h3>
         <div class="table-wrap">
             <table class="matches-table">
                 <thead>
@@ -148,8 +150,10 @@
                 <tbody>
                     {% for match in analysis.worst_scenario.matches %}
                     <tr>
-                        <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{ match.home_name }}{% endif %}</td>
-                        <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{ match.away_name }}{% endif %}</td>
+                        <td>{% if match.result == 'home_win' %}<strong>{{ match.home_name }}</strong>{% else %}{{
+                            match.home_name }}{% endif %}</td>
+                        <td>{% if match.result == 'away_win' %}<strong>{{ match.away_name }}</strong>{% else %}{{
+                            match.away_name }}{% endif %}</td>
                         <td class="text-right">
                             {% if match.result == 'home_win' %}
                             {{ match.home_name }}
@@ -185,8 +189,8 @@
                         <td>{% if team.team_id == analysis.team_id %}<strong>{{ team.team_name }}</strong>{% else %}{{
                             team.team_name }}{% endif %}</td>
                         <td class="text-right">{{ team.points }}</td>
-                    </tr>
-                    {% endfor %}
+                        </tr>
+                        {% endfor %}
                 </tbody>
             </table>
         </div>

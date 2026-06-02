@@ -130,7 +130,7 @@ msgstr ""
 
 #: src/orchamp_web/templates/team_analysis.html:77
 #: src/orchamp_web/templates/team_analysis.html:138
-msgid "Required results"
+msgid "Example results"
 msgstr ""
 
 #: src/orchamp_web/templates/partials/schedule.html:8
@@ -193,4 +193,3 @@ msgstr ""
 #: src/orchamp_web/templates/partials/standings_table.html:7
 msgid "Best–Worst"
 msgstr ""
-

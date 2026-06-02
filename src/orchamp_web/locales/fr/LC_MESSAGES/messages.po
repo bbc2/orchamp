@@ -131,8 +131,8 @@ msgstr "Meilleur scénario (position %(pos)s)"
 
 #: src/orchamp_web/templates/team_analysis.html:77
 #: src/orchamp_web/templates/team_analysis.html:138
-msgid "Required results"
-msgstr "Résultats requis"
+msgid "Example results"
+msgstr "Exemples de résultats"
 
 #: src/orchamp_web/templates/partials/schedule.html:8
 #: src/orchamp_web/templates/team_analysis.html:82
