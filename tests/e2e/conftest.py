@@ -3,7 +3,7 @@ Pytest configuration for E2E tests.
 
 Requires the following environment variables to be set:
   E2E_BASE_URL  — base URL of the running app (e.g. http://localhost:18080)
-  E2E_PASSWORD  — HTTP Basic Auth password
+  E2E_PASSWORD  — login password (ORCHAMP_BETA_PASSWORD of the running app)
 """
 
 import os
@@ -41,22 +41,27 @@ def new_context(
     browser: Browser, e2e_base_url: str, e2e_password: str
 ) -> Generator[Callable[..., BrowserContext], None, None]:
     """
-    Factory for browser contexts wired to the app's base URL and Basic Auth.
+    Factory for browser contexts wired to the app's base URL and a live session.
 
-    Each call yields a fresh, isolated context (separate cookies/localStorage),
-    which lets a test verify behaviour that must work without prior client
-    state (e.g. assumptions shared purely via the URL). All created contexts
-    are closed at teardown.
+    Each call yields a fresh, isolated context (separate cookies/localStorage)
+    that has already been signed in by POSTing the password to the login form.
+    The resulting session cookie is shared with every page opened in the
+    context. Starting authenticated lets a test verify behaviour that must work
+    without prior client state (e.g. assumptions shared purely via the URL).
+    All created contexts are closed at teardown.
     """
 
     created: list[BrowserContext] = []
 
     def _make(**kwargs: Any) -> BrowserContext:
-        ctx = browser.new_context(
-            base_url=e2e_base_url,
-            http_credentials={"username": "", "password": e2e_password},
-            **kwargs,
+        ctx = browser.new_context(base_url=e2e_base_url, **kwargs)
+        # context.request shares cookie storage with the context, so logging in
+        # here authenticates every page subsequently opened in it.
+        response = ctx.request.post(
+            f"{e2e_base_url}/login",
+            form={"password": e2e_password, "next": "/"},
         )
+        assert response.ok, f"E2E login failed: {response.status}"
         created.append(ctx)
         return ctx
 

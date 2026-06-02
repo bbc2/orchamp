@@ -23,13 +23,13 @@ from orchamp.models import (
 )
 from orchamp.ranking import RankedTeam, compute_rankings
 from orchamp.solvers.cpsat import CpSatSolver
+from orchamp_web.assumptions import AssumptionDisplay, AssumptionEntry
 from orchamp_web.cache import (
     ContentStore,
     RootStore,
     collect_garbage,
     compute_hash,
 )
-from orchamp_web.assumptions import AssumptionDisplay, AssumptionEntry
 from orchamp_web.config import DEFAULT_RULES, AppConfig, LeagueConfig
 from orchamp_web.sources import get_data_source
 

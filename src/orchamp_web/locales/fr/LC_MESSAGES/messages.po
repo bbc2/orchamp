@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-29 14:46+0200\n"
+"POT-Creation-Date: 2026-06-02 18:29+0200\n"
 "PO-Revision-Date: 2026-05-26 14:15+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,29 +18,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: src/orchamp_web/templates/base.html:712
+#: src/orchamp_web/templates/base.html:847
 msgid "Skip to content"
 msgstr "Aller au contenu"
 
-#: src/orchamp_web/templates/base.html:724
-msgid "Switch theme"
-msgstr "Changer de thème"
-
-#: src/orchamp_web/templates/base.html:721
+#: src/orchamp_web/templates/base.html:859
 msgid "Theme: dark"
 msgstr "Thème : sombre"
 
-#: src/orchamp_web/templates/base.html:722
+#: src/orchamp_web/templates/base.html:860
 msgid "Theme: light"
 msgstr "Thème : clair"
 
-#: src/orchamp_web/templates/base.html:723
+#: src/orchamp_web/templates/base.html:861
 msgid "Theme: system"
 msgstr "Thème : système"
+
+#: src/orchamp_web/templates/base.html:862
+msgid "Switch theme"
+msgstr "Changer de thème"
+
+#: src/orchamp_web/templates/base.html:893
+#: src/orchamp_web/templates/base.html:894
+msgid "Log out"
+msgstr "Se déconnecter"
 
 #: src/orchamp_web/templates/index.html:7
 msgid "Table tennis championship standings with tiebreaker rules."
 msgstr "Classements de championnat de tennis de table avec règles de départage."
+
+#: src/orchamp_web/templates/login.html:8
+#: src/orchamp_web/templates/login.html:190
+msgid "Sign in"
+msgstr "Se connecter"
+
+#: src/orchamp_web/templates/login.html:177
+msgid "Enter the password to continue."
+msgstr "Saisissez le mot de passe pour continuer."
+
+#: src/orchamp_web/templates/login.html:180
+msgid "Incorrect password."
+msgstr "Mot de passe incorrect."
+
+#: src/orchamp_web/templates/login.html:186
+msgid "Password"
+msgstr "Mot de passe"
 
 #: src/orchamp_web/templates/standings.html:9
 #: src/orchamp_web/templates/team_analysis.html:7
@@ -56,13 +78,13 @@ msgstr "Données source ↗"
 msgid "Refresh"
 msgstr "Actualiser"
 
-#: src/orchamp_web/templates/standings.html:29
-#: src/orchamp_web/templates/standings.html:38
+#: src/orchamp_web/templates/standings.html:30
+#: src/orchamp_web/templates/standings.html:39
 msgid "Loading…"
 msgstr ""
 
 #: src/orchamp_web/templates/partials/assumptions_panel.html:14
-#: src/orchamp_web/templates/standings.html:47
+#: src/orchamp_web/templates/standings.html:48
 msgid ""
 "No assumptions set. Enter scores for upcoming matches to see projected "
 "standings."

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}" data-theme="dark" data-theme-mode="system">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>{{ _("Sign in") }} · Orchamp</title>
+    <script>
+        // Resolve the theme before first paint to avoid a flash (mirrors the
+        // logic in base.html; the login page is standalone so it repeats it).
+        (function () {
+            try {
+                var saved = localStorage.getItem('orchamp-theme');
+                var mode = (saved === 'light' || saved === 'dark' || saved === 'system')
+                    ? saved
+                    : 'system';
+                var effective = (mode === 'system')
+                    ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+                    : mode;
+                var de = document.documentElement;
+                de.setAttribute('data-theme', effective);
+                de.setAttribute('data-theme-mode', mode);
+            } catch (e) {}
+        })();
+    </script>
+    <style>
+        @font-face {
+            font-family: "IBM Plex Sans";
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url("/static/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2");
+        }
+
+        @font-face {
+            font-family: "IBM Plex Sans";
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url("/static/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");
+        }
+
+        @font-face {
+            font-family: "IBM Plex Sans";
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url("/static/fonts/ibm-plex-sans-latin-700-normal.woff2") format("woff2");
+        }
+
+        :root {
+            --bg: #0d100e;
+            --fg: #e6e9e6;
+            --border: #272d29;
+            --surface: #161b18;
+            --accent: #34d399;
+            --accent-text: #4ade80;
+            --accent-contrast: #07120b;
+            --danger: #f87171;
+            color-scheme: dark;
+        }
+
+        [data-theme="light"] {
+            --bg: #f6f8f6;
+            --fg: #16201a;
+            --border: #dde2dd;
+            --surface: #ffffff;
+            --accent: #16a34a;
+            --accent-text: #15803d;
+            --accent-contrast: #ffffff;
+            --danger: #dc2626;
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 22rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .login-brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.25rem;
+        }
+
+        .login-subtitle {
+            margin: 0 0 1.5rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .login-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-field label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            opacity: 0.8;
+        }
+
+        .login-field input {
+            width: 100%;
+            padding: 0.55rem 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 1rem;
+        }
+
+        .login-field input:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin: 0 0 1rem;
+        }
+
+        .login-submit {
+            width: 100%;
+            background: var(--accent);
+            color: var(--accent-contrast);
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .login-submit:hover {
+            opacity: 0.92;
+        }
+
+        .login-submit:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-card">
+        <h1 class="login-brand">Orchamp</h1>
+        <p class="login-subtitle">{{ _("Enter the password to continue.") }}</p>
+
+        {% if error %}
+        <p class="login-error" role="alert">{{ _("Incorrect password.") }}</p>
+        {% endif %}
+
+        <form method="post" action="/login" autocomplete="off">
+            <input type="hidden" name="next" value="{{ next }}">
+            <div class="login-field">
+                <label for="password">{{ _("Password") }}</label>
+                <input type="password" id="password" name="password" required autofocus
+                    autocomplete="current-password">
+            </div>
+            <button type="submit" class="login-submit">{{ _("Sign in") }}</button>
+        </form>
+    </main>
+</body>
+
+</html>

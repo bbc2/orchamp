@@ -1,65 +1,72 @@
 import pytest
-from fastapi import HTTPException
-from fastapi.security import HTTPBasicCredentials
+from fastapi import Depends, FastAPI, Request
+from fastapi.testclient import TestClient
+from starlette.middleware.sessions import SessionMiddleware
 
-from orchamp_web.auth import require_basic_auth
+from orchamp_web.auth import (
+    AuthRequired,
+    auth_exception_handler,
+    end_session,
+    require_auth,
+    session_secret_key,
+    start_session,
+)
 
 
-def _credentials(password: str) -> HTTPBasicCredentials:
-    return HTTPBasicCredentials(username="user", password=password)
+class TestAuthentication:
+    """
+    End-to-end test with a dummy app
+    """
 
-
-class TestRequireBasicAuth:
-    def test_no_env_var_no_credentials_passes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("ORCHAMP_BETA_PASSWORD", raising=False)
-
-        require_basic_auth(credentials=None)
-
-    def test_no_env_var_with_credentials_passes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("ORCHAMP_BETA_PASSWORD", raising=False)
-
-        require_basic_auth(credentials=_credentials("anything"))
-
-    def test_correct_password_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    @pytest.fixture
+    def client(self, monkeypatch: pytest.MonkeyPatch) -> TestClient:
         monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "secret")
+        monkeypatch.setenv("ORCHAMP_SECRET_KEY", "test-signing-key")
 
-        require_basic_auth(credentials=_credentials("secret"))
+        app = FastAPI()
+        app.add_exception_handler(AuthRequired, auth_exception_handler)
+        app.add_middleware(
+            SessionMiddleware,
+            secret_key=session_secret_key(),
+            session_cookie="orchamp_session",
+            https_only=False,
+        )
 
-    def test_wrong_password_raises_401(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "secret")
+        @app.get("/protected", dependencies=[Depends(require_auth)])
+        def protected() -> dict:
+            return {"ok": True}
 
-        with pytest.raises(HTTPException) as exc_info:
-            require_basic_auth(credentials=_credentials("wrong"))
+        @app.post("/test-login")
+        def test_login(request: Request) -> dict:
+            start_session(request)
+            return {"ok": True}
 
-        assert exc_info.value.status_code == 401
+        @app.post("/test-logout")
+        def test_logout(request: Request) -> dict:
+            end_session(request)
+            return {"ok": True}
 
-    def test_missing_credentials_raises_401(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "secret")
+        return TestClient(app, follow_redirects=False)
 
-        with pytest.raises(HTTPException) as exc_info:
-            require_basic_auth(credentials=None)
+    def test_protected_redirects_when_anonymous(self, client: TestClient) -> None:
+        response = client.get("/protected")
+        assert response.status_code == 303
+        assert response.headers["location"] == "/login?next=%2Fprotected"
 
-        assert exc_info.value.status_code == 401
+    def test_login_then_access_then_logout(self, client: TestClient) -> None:
+        client.post("/test-login")
+        assert "orchamp_session" in client.cookies
 
-    def test_missing_credentials_sends_www_authenticate_header(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "secret")
+        assert client.get("/protected").status_code == 200
 
-        with pytest.raises(HTTPException) as exc_info:
-            require_basic_auth(credentials=None)
+        client.post("/test-logout")
+        assert client.get("/protected").status_code == 303
 
-        assert exc_info.value.headers is not None
-        assert exc_info.value.headers.get("WWW-Authenticate") == 'Basic realm="Orchamp"'
-        assert exc_info.value.headers.get("Connection") == "close"
-
-    def test_empty_env_var_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "")
-
-        require_basic_auth(credentials=None)
+    def test_session_cookie_is_signed(self, client: TestClient) -> None:
+        response = client.post("/test-login")
+        cookie = response.headers["set-cookie"]
+        assert "orchamp_session=" in cookie
+        assert "httponly" in cookie.lower()
+        assert "samesite=lax" in cookie.lower()
+        # The flag is signed, not stored in plaintext.
+        assert "authenticated" not in cookie

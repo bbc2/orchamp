@@ -242,6 +242,42 @@
             opacity: 0.8;
         }
 
+        .nav-logout {
+            margin: 0;
+            display: flex;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--fg);
+            cursor: pointer;
+            padding: 0;
+            opacity: 0.7;
+        }
+
+        .logout-btn svg {
+            width: 1.05rem;
+            height: 1.05rem;
+        }
+
+        .logout-btn:hover {
+            opacity: 1;
+            background: var(--row-alt);
+        }
+
+        .logout-btn:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+            opacity: 1;
+        }
+
         .main-content {
             flex: 1;
             min-width: 0;
@@ -852,6 +888,19 @@
                     <a href="/set-lang?lang=en" {% if locale=="en" %} class="active" {% endif %}>EN</a>
                     <a href="/set-lang?lang=fr" {% if locale=="fr" %} class="active" {% endif %}>FR</a>
                 </nav>
+                {% if auth_enabled %}
+                <form method="post" action="/logout" class="nav-logout">
+                    <button type="submit" class="logout-btn" title="{{ _('Log out') }}"
+                        aria-label="{{ _('Log out') }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </nav>
         <main id="main" class="main-content {% block main_class %}{% endblock %}">

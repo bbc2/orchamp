@@ -5,6 +5,7 @@ services:
     working_dir: /data
     volumes:
       - ../tests:/data:ro
+    stop_signal: SIGKILL
     networks:
       - e2e-net
 
@@ -18,6 +19,14 @@ services:
       - ../tests/e2e/docker_config.toml:/home/one/app/config.toml:ro
     environment:
       - ORCHAMP_BETA_PASSWORD=e2e-test-password
+      - ORCHAMP_HTTPS_ONLY=false
+      - ORCHAMP_SECRET_KEY=e2e-test-secret-key
+    healthcheck:
+      test: ["CMD", "/home/one/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/login', timeout=3)"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
     depends_on:
       - fixture-server
     networks:

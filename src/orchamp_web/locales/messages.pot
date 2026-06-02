@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-29 14:46+0200\n"
+"POT-Creation-Date: 2026-06-02 18:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,50 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: src/orchamp_web/templates/base.html:712
+#: src/orchamp_web/templates/base.html:847
 msgid "Skip to content"
 msgstr ""
 
-#: src/orchamp_web/templates/base.html:724
-msgid "Toggle light/dark theme"
+#: src/orchamp_web/templates/base.html:859
+msgid "Theme: dark"
+msgstr ""
+
+#: src/orchamp_web/templates/base.html:860
+msgid "Theme: light"
+msgstr ""
+
+#: src/orchamp_web/templates/base.html:861
+msgid "Theme: system"
+msgstr ""
+
+#: src/orchamp_web/templates/base.html:862
+msgid "Switch theme"
+msgstr ""
+
+#: src/orchamp_web/templates/base.html:893
+#: src/orchamp_web/templates/base.html:894
+msgid "Log out"
 msgstr ""
 
 #: src/orchamp_web/templates/index.html:7
 msgid "Table tennis championship standings with tiebreaker rules."
+msgstr ""
+
+#: src/orchamp_web/templates/login.html:8
+#: src/orchamp_web/templates/login.html:190
+msgid "Sign in"
+msgstr ""
+
+#: src/orchamp_web/templates/login.html:177
+msgid "Enter the password to continue."
+msgstr ""
+
+#: src/orchamp_web/templates/login.html:180
+msgid "Incorrect password."
+msgstr ""
+
+#: src/orchamp_web/templates/login.html:186
+msgid "Password"
 msgstr ""
 
 #: src/orchamp_web/templates/standings.html:9
@@ -43,13 +77,13 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
-#: src/orchamp_web/templates/standings.html:29
-#: src/orchamp_web/templates/standings.html:38
+#: src/orchamp_web/templates/standings.html:30
+#: src/orchamp_web/templates/standings.html:39
 msgid "Loading…"
 msgstr ""
 
 #: src/orchamp_web/templates/partials/assumptions_panel.html:14
-#: src/orchamp_web/templates/standings.html:47
+#: src/orchamp_web/templates/standings.html:48
 msgid ""
 "No assumptions set. Enter scores for upcoming matches to see projected "
 "standings."

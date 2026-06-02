@@ -75,6 +75,7 @@ run:
     env \
         ORCHAMP_CONFIG=_local/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
+        ORCHAMP_HTTPS_ONLY=false \
         uvicorn --factory --reload orchamp_web.app:create
 
 # Build the Docker image and run E2E tests against it
@@ -88,21 +89,7 @@ docker-e2e *args="":
     trap "$COMPOSE down --volumes 2>/dev/null || true" EXIT
 
     # Run the app with an end-to-end-specific configuration
-    $COMPOSE up --build --detach
-
-    # Wait for the app to be ready
-    echo "Waiting for app to be ready..."
-    for i in $(seq 1 30); do
-        if curl --silent --fail --user ":e2e-test-password" http://localhost:18080/ >/dev/null 2>&1; then
-            echo "App is ready."
-            break
-        fi
-        if [ "$i" -eq 30 ]; then
-            echo "Timed out waiting for app" >&2
-            exit 1
-        fi
-        sleep 1
-    done
+    $COMPOSE up --build --wait
 
     # Run the test client
     E2E_BASE_URL=http://localhost:18080 \
@@ -118,6 +105,7 @@ docker-run: docker-build
     docker run --rm --publish 8080:8080 \
         --volume "$(pwd)/_local/config.toml:/home/one/app/config.toml:ro" \
         --env ORCHAMP_BETA_PASSWORD=pass \
+        --env ORCHAMP_HTTPS_ONLY=false \
         orchamp:latest
 
 # Deploy the application
@@ -128,5 +116,11 @@ deploy: docker-build
         echo "Error: ORCHAMP_BETA_PASSWORD is not set" >&2
         exit 1
     fi
-    flyctl secrets set --stage ORCHAMP_BETA_PASSWORD="$ORCHAMP_BETA_PASSWORD"
+    if [ -z "$ORCHAMP_SECRET_KEY" ]; then
+        echo "Error: ORCHAMP_SECRET_KEY is not set" >&2
+        exit 1
+    fi
+    flyctl secrets set --stage \
+        ORCHAMP_BETA_PASSWORD="$ORCHAMP_BETA_PASSWORD" \
+        ORCHAMP_SECRET_KEY="$ORCHAMP_SECRET_KEY"
     flyctl deploy --local-only

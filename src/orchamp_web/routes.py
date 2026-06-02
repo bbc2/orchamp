@@ -6,8 +6,8 @@ import asyncio
 from typing import Annotated, Any
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from orchamp_web.assumptions import (
@@ -15,13 +15,33 @@ from orchamp_web.assumptions import (
     parse_assumptions,
     serialize_assumption,
 )
-from orchamp_web.auth import require_basic_auth
+from orchamp_web.auth import (
+    end_session,
+    is_authenticated,
+    require_auth,
+    start_session,
+    verify_password,
+)
 from orchamp_web.cache import DiskContentStore, DiskRootStore
 from orchamp_web.config import AppConfig
 from orchamp_web.i18n import SUPPORTED_LOCALES
 from orchamp_web.services import StandingsService
 
-router = APIRouter(dependencies=[Depends(require_basic_auth)])
+router = APIRouter(dependencies=[Depends(require_auth)])
+auth_router = APIRouter()  # Public routes for login/logout
+
+
+def _safe_next(next_path: str) -> str:
+    """
+    Sanitise a post-login redirect target to prevent open redirects.
+
+    Only same-site, absolute paths are honoured; anything else (absolute URLs,
+    protocol-relative ``//host`` paths, ...) falls back to the home page.
+    """
+
+    if next_path.startswith("/") and not next_path.startswith("//"):
+        return next_path
+    return "/"
 
 
 @router.get("/set-lang", response_class=RedirectResponse, include_in_schema=False)
@@ -305,3 +325,57 @@ async def web_team_analysis(
             "assumption_qs": assumption_qs,
         },
     )
+
+
+@auth_router.get("/login", response_class=HTMLResponse, include_in_schema=False)
+def login_form(
+    request: Request,
+    templates: Annotated[Jinja2Templates, Depends(get_templates)],
+    next: str = "/",
+) -> Response:
+    """
+    Show the login page (or skip it if already signed in).
+    """
+    safe_next = _safe_next(next)
+
+    if is_authenticated(request):
+        return RedirectResponse(url=safe_next, status_code=303)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"next": safe_next, "error": None},
+    )
+
+
+@auth_router.post("/login", include_in_schema=False)
+async def login_submit(
+    request: Request,
+    templates: Annotated[Jinja2Templates, Depends(get_templates)],
+    password: Annotated[str, Form()] = "",
+    next: Annotated[str, Form()] = "/",
+) -> Response:
+    """
+    Validate the submitted password and start a session on success.
+    """
+    safe_next = _safe_next(next)
+
+    if not verify_password(password):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"next": safe_next, "error": True},
+            status_code=401,
+        )
+
+    start_session(request)
+    return RedirectResponse(url=safe_next, status_code=303)
+
+
+@auth_router.post("/logout", include_in_schema=False)
+def logout(request: Request) -> RedirectResponse:
+    """
+    End the session and return to the login page.
+    """
+    end_session(request)
+    return RedirectResponse(url="/login", status_code=303)

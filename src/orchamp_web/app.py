@@ -13,11 +13,20 @@ import httpx
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
+from orchamp_web.auth import (
+    SESSION_MAX_AGE,
+    AuthRequired,
+    auth_enabled,
+    auth_exception_handler,
+    https_only,
+    session_secret_key,
+)
 from orchamp_web.config import AppConfig, sorted_nav_leagues
 from orchamp_web.i18n import SUPPORTED_LOCALES, load_translations, make_locale_context
 from orchamp_web.logs import configure_logging
-from orchamp_web.routes import router
+from orchamp_web.routes import auth_router, router
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +39,7 @@ def make_nav_context(config: AppConfig) -> Callable[[Request], dict[str, Any]]:
         return {
             "nav_leagues": nav_leagues,
             "current_league_key": current_league_key,
+            "auth_enabled": auth_enabled(),
         }
 
     return nav_context
@@ -120,10 +130,24 @@ def create() -> FastAPI:
         ],
     )
 
+    app.add_exception_handler(AuthRequired, auth_exception_handler)
+
+    # Signed, cookie-backed session that carries the "authenticated" flag.
+    # Secure by default; ORCHAMP_HTTPS_ONLY=false relaxes it for HTTP dev/e2e.
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=session_secret_key(),
+        session_cookie="orchamp_session",
+        max_age=SESSION_MAX_AGE,
+        same_site="lax",
+        https_only=https_only(),
+    )
+
     app.mount(
         path="/static",
         app=StaticFiles(directory=Path(__file__).parent / "static"),
         name="static",
     )
+    app.include_router(auth_router)
     app.include_router(router)
     return app
