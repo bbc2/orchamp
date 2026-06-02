@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import httpx
+    import httpx2
 
 from orchamp_get.parser import parse_html
 from orchamp_web.config import SourceType
@@ -21,7 +21,7 @@ class DataSource(ABC):
     """
 
     @abstractmethod
-    async def fetch_state(self, url: str, http_client: "httpx.AsyncClient") -> dict:
+    async def fetch_state(self, url: str, http_client: "httpx2.AsyncClient") -> dict:
         """
         Fetch and parse championship state from the given URL.
 
@@ -37,7 +37,7 @@ class ClassementDataSource(DataSource):
     Data source for HTML pages from the "classement" website.
     """
 
-    async def fetch_state(self, url: str, http_client: "httpx.AsyncClient") -> dict:
+    async def fetch_state(self, url: str, http_client: "httpx2.AsyncClient") -> dict:
         response = await http_client.get(url)
         logger.debug(f"External request to {url} (status: {response.status_code})")
         response.raise_for_status()
@@ -52,7 +52,7 @@ class JsonDataSource(DataSource):
     The JSON should have the same structure as `ChampionshipState.from_dict()` expects.
     """
 
-    async def fetch_state(self, url: str, http_client: "httpx.AsyncClient") -> dict:
+    async def fetch_state(self, url: str, http_client: "httpx2.AsyncClient") -> dict:
         response = await http_client.get(url)
         logger.debug(f"External request to {url} (status: {response.status_code})")
         response.raise_for_status()

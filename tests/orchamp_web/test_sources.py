@@ -4,7 +4,7 @@ Tests for data sources.
 
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 
 from orchamp.models import ChampionshipState, Rules
@@ -21,13 +21,13 @@ TESTS_DIR = Path(__file__).parent.parent
 
 def _make_client(
     content: bytes, content_type: str = "application/octet-stream"
-) -> httpx.AsyncClient:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+) -> httpx2.AsyncClient:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             200, content=content, headers={"content-type": content_type}
         )
 
-    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    return httpx2.AsyncClient(transport=httpx2.MockTransport(handler))
 
 
 class TestJsonDataSource:

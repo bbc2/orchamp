@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator
 
-import httpx
+import httpx2
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -108,7 +108,7 @@ def create() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             app.state.http_client = client
             yield
 

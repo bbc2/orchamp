@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from typing import Generic, Protocol, TypeVar
 
-import httpx
+import httpx2
 
 from orchamp.analyzer import Analyzer
 from orchamp.models import (
@@ -421,7 +421,7 @@ class StandingsService:
         roots: RootStore,
         content: ContentStore,
         config: AppConfig,
-        http_client: httpx.AsyncClient,
+        http_client: httpx2.AsyncClient,
     ) -> None:
         self._roots = roots
         self._content = content

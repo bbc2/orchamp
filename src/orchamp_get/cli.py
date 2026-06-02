@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 
-import httpx
+import httpx2
 
 from orchamp_get.html_transform import strip_and_anonymize_html
 from orchamp_get.parser import parse_html
@@ -14,9 +14,9 @@ def cmd_fetch(url: str, *, anonymize: bool = False) -> int:
     """
 
     try:
-        response = httpx.get(url)
+        response = httpx2.get(url)
         response.raise_for_status()
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
         print(f"Failed to fetch URL: {e}", file=sys.stderr)
         return 1
 
