@@ -18,11 +18,12 @@ services:
     volumes:
       - ../tests/e2e/docker_config.toml:/home/one/app/config.toml:ro
     environment:
-      - ORCHAMP_BETA_PASSWORD=e2e-test-password
+      # Hash of "e2e-test-password" (`$` is doubled to survive variable interpolation)
+      - ORCHAMP_BETA_PASSWORD_HASH=$$argon2id$$v=19$$m=65536,t=3,p=1$$qwHOw/8XkXD7sSPRg7Mb0w$$GKjoAeQjhtis5w4+pnGs0AUqmlE0PKnswqftyX8adY0
       - ORCHAMP_HTTPS_ONLY=false
       - ORCHAMP_SECRET_KEY=e2e-test-secret-key
     healthcheck:
-      test: ["CMD", "/home/one/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/login', timeout=3)"]
+      test: [ "CMD", "/home/one/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/login', timeout=3)" ]
       interval: 2s
       timeout: 5s
       retries: 15

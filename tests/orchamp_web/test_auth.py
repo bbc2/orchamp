@@ -1,72 +1,369 @@
+import time
+from collections.abc import Callable
+from pathlib import Path
+
+import anyio
 import pytest
+from argon2 import PasswordHasher
 from fastapi import Depends, FastAPI, Request
+from fastapi.templating import Jinja2Templates
 from fastapi.testclient import TestClient
+from starlette.datastructures import Headers
 from starlette.middleware.sessions import SessionMiddleware
 
+import orchamp_web
 from orchamp_web.auth import (
+    Authenticator,
     AuthRequired,
+    LoginThrottle,
     auth_exception_handler,
-    end_session,
+    client_ip,
     require_auth,
-    session_secret_key,
-    start_session,
 )
+from orchamp_web.routes import auth_router
+
+TEMPLATES_DIR = Path(orchamp_web.__file__).parent / "templates"
 
 
-class TestAuthentication:
+def build_authenticator(
+    password: str | None = "secret",
+    max_failures: int = 10,
+    window_seconds: float = 300,
+    now: Callable[[], float] = time.monotonic,
+) -> Authenticator:
     """
-    End-to-end test with a dummy app
+    Build an :class:`Authenticator` for tests with cheap Argon2 params.
+
+    Pass ``password=None`` for the auth-disabled case. Everything that the
+    production code reads from the environment or module globals is a plain
+    constructor argument here, so tests never patch anything.
     """
 
-    @pytest.fixture
-    def client(self, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD", "secret")
-        monkeypatch.setenv("ORCHAMP_SECRET_KEY", "test-signing-key")
+    hasher = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
+    return Authenticator(
+        password_hash=hasher.hash(password) if password is not None else None,
+        hasher=hasher,
+        throttle=LoginThrottle(max_failures, window_seconds, now=now),
+    )
 
-        app = FastAPI()
-        app.add_exception_handler(AuthRequired, auth_exception_handler)
-        app.add_middleware(
-            SessionMiddleware,
-            secret_key=session_secret_key(),
-            session_cookie="orchamp_session",
-            https_only=False,
-        )
 
-        @app.get("/protected", dependencies=[Depends(require_auth)])
-        def protected() -> dict:
-            return {"ok": True}
+def build_request(
+    headers: dict[str, str] | None = None,
+    client: tuple[str, int] | None = ("1.2.3.4", 1234),
+) -> Request:
+    scope = {
+        "type": "http",
+        "headers": Headers(headers or {}).raw,
+        "client": client,
+    }
+    return Request(scope)
 
-        @app.post("/test-login")
-        def test_login(request: Request) -> dict:
-            start_session(request)
-            return {"ok": True}
 
-        @app.post("/test-logout")
-        def test_logout(request: Request) -> dict:
-            end_session(request)
-            return {"ok": True}
+def build_app(authenticator: Authenticator) -> TestClient:
+    """
+    A minimal app wired with the real login routes and session handling.
 
-        return TestClient(app, follow_redirects=False)
+    Lets tests drive the whole flow over HTTP (`POST /login`, the session
+    cookie, the protected route) instead of poking at internals. The login
+    template is rendered with a trivial i18n stub so no compiled catalog or
+    nav/config wiring is needed.
+    """
 
-    def test_protected_redirects_when_anonymous(self, client: TestClient) -> None:
+    app = FastAPI()
+    app.state.authenticator = authenticator
+    app.state.templates = Jinja2Templates(
+        directory=TEMPLATES_DIR,
+        context_processors=[lambda request: {"_": str, "locale": "en"}],
+    )
+    app.add_exception_handler(AuthRequired, auth_exception_handler)
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key="test-signing-key",
+        session_cookie="orchamp_session",
+        https_only=False,
+    )
+    app.include_router(auth_router)
+
+    @app.get("/protected", dependencies=[Depends(require_auth)])
+    def protected() -> dict:
+        return {"ok": True}
+
+    return TestClient(app, follow_redirects=False)
+
+
+class TestLoginFlow:
+    """
+    End-to-end login behaviour over HTTP.
+    """
+
+    def test_protected_redirects_when_anonymous(self) -> None:
+        client = build_app(build_authenticator())
+
         response = client.get("/protected")
+
         assert response.status_code == 303
         assert response.headers["location"] == "/login?next=%2Fprotected"
 
-    def test_login_then_access_then_logout(self, client: TestClient) -> None:
-        client.post("/test-login")
-        assert "orchamp_session" in client.cookies
+    def test_correct_password_redirects_to_next(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
 
-        assert client.get("/protected").status_code == 200
+        response = client.post("/login", data={"password": "hunter2", "next": "/"})
 
-        client.post("/test-logout")
+        assert response.status_code == 303
+        assert response.headers["location"] == "/"
+
+    def test_correct_password_grants_access(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+        client.post("/login", data={"password": "hunter2"})
+
+        response = client.get("/protected")
+
+        assert response.status_code == 200
+
+    def test_wrong_password_shows_error(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+
+        response = client.post("/login", data={"password": "nope"})
+
+        assert response.status_code == 401
+        assert "Incorrect password." in response.text
+
+    def test_wrong_password_does_not_grant_access(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+        client.post("/login", data={"password": "nope"})
+
+        response = client.get("/protected")
+
+        assert response.status_code == 303
+
+    def test_logout_redirects_to_login(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+        client.post("/login", data={"password": "hunter2"})
+
+        response = client.post("/logout")
+
+        assert response.status_code == 303
+        assert response.headers["location"] == "/login"
+
+    def test_logout_ends_session(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+        client.post("/login", data={"password": "hunter2"})
+
+        client.post("/logout")
+
         assert client.get("/protected").status_code == 303
 
-    def test_session_cookie_is_signed(self, client: TestClient) -> None:
-        response = client.post("/test-login")
+    def test_session_cookie_is_signed(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+
+        response = client.post("/login", data={"password": "hunter2"})
+
         cookie = response.headers["set-cookie"]
         assert "orchamp_session=" in cookie
         assert "httponly" in cookie.lower()
         assert "samesite=lax" in cookie.lower()
         # The flag is signed, not stored in plaintext.
         assert "authenticated" not in cookie
+
+    def test_disabled_auth_leaves_routes_open(self) -> None:
+        client = build_app(build_authenticator(password=None))
+
+        response = client.get("/protected")
+
+        assert response.status_code == 200
+
+    def test_disabled_auth_login_form_still_works(self) -> None:
+        # The login form still signs you in during development.
+        client = build_app(build_authenticator(password=None))
+
+        response = client.post("/login", data={"password": "anything"})
+
+        assert response.status_code == 303
+
+    def test_safe_next_is_honoured(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+
+        response = client.post(
+            "/login", data={"password": "hunter2", "next": "/web/foo/"}
+        )
+
+        assert response.headers["location"] == "/web/foo/"
+
+    def test_open_redirect_next_falls_back_home(self) -> None:
+        client = build_app(build_authenticator("hunter2"))
+
+        response = client.post(
+            "/login", data={"password": "hunter2", "next": "//evil.com"}
+        )
+
+        assert response.headers["location"] == "/"
+
+    def test_rate_limited_after_repeated_failures(self) -> None:
+        client = build_app(build_authenticator("hunter2", max_failures=3))
+        for _ in range(3):
+            client.post("/login", data={"password": "nope"})
+
+        response = client.post("/login", data={"password": "nope"})
+
+        assert response.status_code == 429
+
+    def test_rate_limiting_blocks_the_correct_password_too(self) -> None:
+        client = build_app(build_authenticator("hunter2", max_failures=3))
+        for _ in range(3):
+            client.post("/login", data={"password": "nope"})
+
+        response = client.post("/login", data={"password": "hunter2"})
+
+        assert response.status_code == 429
+
+
+class TestAuthenticatorVerify:
+    def test_correct_password(self) -> None:
+        authenticator = build_authenticator("hunter2")
+
+        assert authenticator.verify("hunter2") is True
+
+    def test_wrong_password(self) -> None:
+        authenticator = build_authenticator("hunter2")
+
+        assert authenticator.verify("wrong") is False
+
+
+class TestAuthenticatorFromEnv:
+    @pytest.fixture(autouse=True)
+    def clean_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("ORCHAMP_BETA_PASSWORD_HASH", raising=False)
+        monkeypatch.delenv("ORCHAMP_AUTH_DISABLED", raising=False)
+
+    def test_valid_hash_is_accepted(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        hash = build_authenticator("hunter2").password_hash
+        assert hash is not None
+        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD_HASH", hash)
+
+        authenticator = Authenticator.from_env()
+
+        assert authenticator.enabled
+
+    def test_malformed_hash_fails_at_startup(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD_HASH", "hunter2")
+
+        with pytest.raises(ValueError, match="ORCHAMP_BETA_PASSWORD_HASH"):
+            Authenticator.from_env()
+
+    def test_missing_hash_fails_at_startup(self) -> None:
+        with pytest.raises(ValueError, match="ORCHAMP_BETA_PASSWORD_HASH is not set"):
+            Authenticator.from_env()
+
+    def test_empty_hash_fails_at_startup(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD_HASH", "")
+
+        with pytest.raises(ValueError, match="ORCHAMP_BETA_PASSWORD_HASH is not set"):
+            Authenticator.from_env()
+
+    def test_explicit_disable_turns_auth_off(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("ORCHAMP_AUTH_DISABLED", "true")
+
+        authenticator = Authenticator.from_env()
+
+        assert not authenticator.enabled
+
+    def test_disable_requires_exact_true(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # A typo must not disable authentication; without a hash it fails.
+        monkeypatch.setenv("ORCHAMP_AUTH_DISABLED", "yes")
+
+        with pytest.raises(ValueError, match="ORCHAMP_BETA_PASSWORD_HASH is not set"):
+            Authenticator.from_env()
+
+    def test_disable_conflicts_with_hash(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        hash = build_authenticator("hunter2").password_hash
+        assert hash is not None
+        monkeypatch.setenv("ORCHAMP_BETA_PASSWORD_HASH", hash)
+        monkeypatch.setenv("ORCHAMP_AUTH_DISABLED", "true")
+
+        with pytest.raises(ValueError, match="unset one of them"):
+            Authenticator.from_env()
+
+
+class TestAuthenticate:
+    def test_success_clears_prior_failures(self) -> None:
+        authenticator = build_authenticator("hunter2", max_failures=5)
+        for _ in range(4):
+            anyio.run(authenticator.authenticate, "ip", "nope")
+
+        # A correct login resets the counter so the client isn't locked out.
+        ok = anyio.run(authenticator.authenticate, "ip", "hunter2")
+
+        assert ok is True
+        assert not authenticator.throttle.is_blocked("ip")
+
+
+class TestClientIp:
+    def test_prefers_fly_header(self) -> None:
+        request = build_request(
+            headers={"fly-client-ip": "9.9.9.9"}, client=("10.0.0.1", 1)
+        )
+
+        assert client_ip(request) == "9.9.9.9"
+
+    def test_falls_back_to_socket_peer(self) -> None:
+        request = build_request(client=("10.0.0.1", 1))
+
+        assert client_ip(request) == "10.0.0.1"
+
+    def test_unknown_when_no_client(self) -> None:
+        request = build_request(client=None)
+
+        assert client_ip(request) == "unknown"
+
+
+class TestLoginThrottle:
+    def test_not_blocked_below_max_failures(self) -> None:
+        throttle = LoginThrottle(max_failures=3, window_seconds=300)
+
+        for _ in range(2):
+            throttle.record_failure("ip")
+
+        assert not throttle.is_blocked("ip")
+
+    def test_blocks_after_max_failures(self) -> None:
+        throttle = LoginThrottle(max_failures=3, window_seconds=300)
+
+        for _ in range(3):
+            throttle.record_failure("ip")
+
+        assert throttle.is_blocked("ip")
+
+    def test_reset_unblocks(self) -> None:
+        throttle = LoginThrottle(max_failures=3, window_seconds=300)
+        for _ in range(3):
+            throttle.record_failure("ip")
+
+        throttle.reset("ip")
+
+        assert not throttle.is_blocked("ip")
+
+    def test_window_expiry(self) -> None:
+        clock = {"now": 1000.0}
+        throttle = LoginThrottle(
+            max_failures=2, window_seconds=60, now=lambda: clock["now"]
+        )
+        throttle.record_failure("ip")
+        throttle.record_failure("ip")
+
+        assert throttle.is_blocked("ip")
+
+        clock["now"] += 61  # all failures now outside the window
+
+        assert not throttle.is_blocked("ip")
+
+    def test_per_ip_isolation(self) -> None:
+        throttle = LoginThrottle(max_failures=1, window_seconds=300)
+
+        throttle.record_failure("attacker")
+
+        assert throttle.is_blocked("attacker")
+        assert not throttle.is_blocked("innocent")

@@ -60,6 +60,9 @@ msgstr "Saisissez le mot de passe pour continuer."
 msgid "Incorrect password."
 msgstr "Mot de passe incorrect."
 
+msgid "Too many attempts. Please wait a few minutes and try again."
+msgstr "Trop de tentatives. Veuillez patienter quelques minutes et réessayer."
+
 #: src/orchamp_web/templates/login.html:186
 msgid "Password"
 msgstr "Mot de passe"

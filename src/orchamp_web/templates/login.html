@@ -176,7 +176,9 @@
         <h1 class="login-brand">Orchamp</h1>
         <p class="login-subtitle">{{ _("Enter the password to continue.") }}</p>
 
-        {% if error %}
+        {% if error == "rate_limited" %}
+        <p class="login-error" role="alert">{{ _("Too many attempts. Please wait a few minutes and try again.") }}</p>
+        {% elif error %}
         <p class="login-error" role="alert">{{ _("Incorrect password.") }}</p>
         {% endif %}
 

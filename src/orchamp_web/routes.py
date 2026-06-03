@@ -16,11 +16,12 @@ from orchamp_web.assumptions import (
     serialize_assumption,
 )
 from orchamp_web.auth import (
+    LoginRateLimited,
+    client_ip,
     end_session,
     is_authenticated,
     require_auth,
     start_session,
-    verify_password,
 )
 from orchamp_web.cache import DiskContentStore, DiskRootStore
 from orchamp_web.config import AppConfig
@@ -336,6 +337,7 @@ def login_form(
     """
     Show the login page (or skip it if already signed in).
     """
+
     safe_next = _safe_next(next)
 
     if is_authenticated(request):
@@ -358,15 +360,27 @@ async def login_submit(
     """
     Validate the submitted password and start a session on success.
     """
+
     safe_next = _safe_next(next)
 
-    if not verify_password(password):
+    def _login_error(error: str, status_code: int) -> Response:
         return templates.TemplateResponse(
             request=request,
             name="login.html",
-            context={"next": safe_next, "error": True},
-            status_code=401,
+            context={"next": safe_next, "error": error},
+            status_code=status_code,
         )
+
+    try:
+        ok = await request.app.state.authenticator.authenticate(
+            client_ip=client_ip(request),
+            candidate=password,
+        )
+    except LoginRateLimited:
+        return _login_error(error="rate_limited", status_code=429)
+
+    if not ok:
+        return _login_error(error="invalid", status_code=401)
 
     start_session(request)
     return RedirectResponse(url=safe_next, status_code=303)

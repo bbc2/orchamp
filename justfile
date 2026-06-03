@@ -76,6 +76,7 @@ run:
         ORCHAMP_CONFIG=_local/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
         ORCHAMP_HTTPS_ONLY=false \
+        ORCHAMP_AUTH_DISABLED=true \
         uvicorn --factory --reload orchamp_web.app:create
 
 # Build the Docker image and run E2E tests against it
@@ -104,7 +105,8 @@ docker-build:
 docker-run: docker-build
     docker run --rm --publish 8080:8080 \
         --volume "$(pwd)/_local/config.toml:/home/one/app/config.toml:ro" \
-        --env ORCHAMP_BETA_PASSWORD=pass \
+        --env ORCHAMP_SECRET_KEY \
+        --env ORCHAMP_BETA_PASSWORD_HASH \
         --env ORCHAMP_HTTPS_ONLY=false \
         orchamp:latest
 
@@ -112,8 +114,8 @@ docker-run: docker-build
 deploy: docker-build
     #!/usr/bin/env bash
     set -e
-    if [ -z "$ORCHAMP_BETA_PASSWORD" ]; then
-        echo "Error: ORCHAMP_BETA_PASSWORD is not set" >&2
+    if [ -z "$ORCHAMP_BETA_PASSWORD_HASH" ]; then
+        echo "Error: ORCHAMP_BETA_PASSWORD_HASH is not set (run \`orchamp-hash-password\`)" >&2
         exit 1
     fi
     if [ -z "$ORCHAMP_SECRET_KEY" ]; then
@@ -121,6 +123,6 @@ deploy: docker-build
         exit 1
     fi
     flyctl secrets set --stage \
-        ORCHAMP_BETA_PASSWORD="$ORCHAMP_BETA_PASSWORD" \
+        ORCHAMP_BETA_PASSWORD_HASH="$ORCHAMP_BETA_PASSWORD_HASH" \
         ORCHAMP_SECRET_KEY="$ORCHAMP_SECRET_KEY"
     flyctl deploy --local-only

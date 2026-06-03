@@ -16,9 +16,9 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from orchamp_web.auth import (
-    SESSION_MAX_AGE,
+    SESSION_MAX_AGE_SECONDS,
+    Authenticator,
     AuthRequired,
-    auth_enabled,
     auth_exception_handler,
     https_only,
     session_secret_key,
@@ -39,7 +39,7 @@ def make_nav_context(config: AppConfig) -> Callable[[Request], dict[str, Any]]:
         return {
             "nav_leagues": nav_leagues,
             "current_league_key": current_league_key,
-            "auth_enabled": auth_enabled(),
+            "auth_enabled": request.app.state.authenticator.enabled,
         }
 
     return nav_context
@@ -118,6 +118,7 @@ def create() -> FastAPI:
         lifespan=lifespan,
     )
     app.state.config = config
+    app.state.authenticator = Authenticator.from_env()
 
     translations_by_locale = {
         locale: load_translations(locale) for locale in SUPPORTED_LOCALES
@@ -138,7 +139,7 @@ def create() -> FastAPI:
         SessionMiddleware,
         secret_key=session_secret_key(),
         session_cookie="orchamp_session",
-        max_age=SESSION_MAX_AGE,
+        max_age=SESSION_MAX_AGE_SECONDS,
         same_site="lax",
         https_only=https_only(),
     )

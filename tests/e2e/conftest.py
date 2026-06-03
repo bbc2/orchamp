@@ -3,7 +3,8 @@ Pytest configuration for E2E tests.
 
 Requires the following environment variables to be set:
   E2E_BASE_URL  — base URL of the running app (e.g. http://localhost:18080)
-  E2E_PASSWORD  — login password (ORCHAMP_BETA_PASSWORD of the running app)
+  E2E_PASSWORD  — plaintext login password (its hash is the running app's
+                  ORCHAMP_BETA_PASSWORD_HASH)
 """
 
 import os
