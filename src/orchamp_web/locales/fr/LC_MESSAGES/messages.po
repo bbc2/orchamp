@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-02 18:29+0200\n"
+"POT-Creation-Date: 2026-06-09 21:26+0200\n"
 "PO-Revision-Date: 2026-05-26 14:15+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,28 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: src/orchamp_web/templates/base.html:847
+#: src/orchamp_web/templates/base.html:892
 msgid "Skip to content"
 msgstr "Aller au contenu"
 
-#: src/orchamp_web/templates/base.html:859
+#: src/orchamp_web/templates/base.html:904
 msgid "Theme: dark"
 msgstr "Thème : sombre"
 
-#: src/orchamp_web/templates/base.html:860
+#: src/orchamp_web/templates/base.html:905
 msgid "Theme: light"
 msgstr "Thème : clair"
 
-#: src/orchamp_web/templates/base.html:861
+#: src/orchamp_web/templates/base.html:905
 msgid "Theme: system"
 msgstr "Thème : système"
 
-#: src/orchamp_web/templates/base.html:862
+#: src/orchamp_web/templates/base.html:906
 msgid "Switch theme"
 msgstr "Changer de thème"
 
-#: src/orchamp_web/templates/base.html:893
-#: src/orchamp_web/templates/base.html:894
+#: src/orchamp_web/templates/base.html:935
 msgid "Log out"
 msgstr "Se déconnecter"
 
@@ -48,7 +47,7 @@ msgid "Table tennis championship standings with tiebreaker rules."
 msgstr "Classements de championnat de tennis de table avec règles de départage."
 
 #: src/orchamp_web/templates/login.html:8
-#: src/orchamp_web/templates/login.html:190
+#: src/orchamp_web/templates/login.html:192
 msgid "Sign in"
 msgstr "Se connecter"
 
@@ -57,13 +56,14 @@ msgid "Enter the password to continue."
 msgstr "Saisissez le mot de passe pour continuer."
 
 #: src/orchamp_web/templates/login.html:180
+msgid "Too many attempts. Please wait a few minutes and try again."
+msgstr ""
+
+#: src/orchamp_web/templates/login.html:182
 msgid "Incorrect password."
 msgstr "Mot de passe incorrect."
 
-msgid "Too many attempts. Please wait a few minutes and try again."
-msgstr "Trop de tentatives. Veuillez patienter quelques minutes et réessayer."
-
-#: src/orchamp_web/templates/login.html:186
+#: src/orchamp_web/templates/login.html:188
 msgid "Password"
 msgstr "Mot de passe"
 
@@ -77,7 +77,7 @@ msgstr "Accueil"
 msgid "Source data ↗"
 msgstr "Données source ↗"
 
-#: src/orchamp_web/templates/standings.html:21
+#: src/orchamp_web/templates/standings.html:20
 msgid "Refresh"
 msgstr "Actualiser"
 
@@ -86,7 +86,7 @@ msgstr "Actualiser"
 msgid "Loading…"
 msgstr ""
 
-#: src/orchamp_web/templates/partials/assumptions_panel.html:14
+#: src/orchamp_web/templates/partials/assumptions_panel.html:17
 #: src/orchamp_web/templates/standings.html:48
 msgid ""
 "No assumptions set. Enter scores for upcoming matches to see projected "
@@ -94,6 +94,8 @@ msgid ""
 msgstr ""
 "Aucune hypothèse définie. Entrez des scores pour les prochains matchs "
 "pour voir les classements projetés."
+
+#: src/orchamp_web/templates/team_analysis.html:17
 msgid "Position analysis"
 msgstr "Analyse de position"
 
@@ -115,15 +117,15 @@ msgstr "Classement actuel"
 
 #: src/orchamp_web/templates/partials/standings_table.html:5
 #: src/orchamp_web/templates/team_analysis.html:49
-#: src/orchamp_web/templates/team_analysis.html:116
-#: src/orchamp_web/templates/team_analysis.html:177
+#: src/orchamp_web/templates/team_analysis.html:118
+#: src/orchamp_web/templates/team_analysis.html:181
 msgid "Team"
 msgstr "Équipe"
 
 #: src/orchamp_web/templates/partials/standings_table.html:6
 #: src/orchamp_web/templates/team_analysis.html:50
-#: src/orchamp_web/templates/team_analysis.html:117
-#: src/orchamp_web/templates/team_analysis.html:178
+#: src/orchamp_web/templates/team_analysis.html:119
+#: src/orchamp_web/templates/team_analysis.html:182
 msgid "Points"
 msgstr "Points"
 
@@ -133,52 +135,57 @@ msgid "Best case scenario (position %(pos)s)"
 msgstr "Meilleur scénario (position %(pos)s)"
 
 #: src/orchamp_web/templates/team_analysis.html:77
-#: src/orchamp_web/templates/team_analysis.html:138
+#: src/orchamp_web/templates/team_analysis.html:140
 msgid "Example results"
 msgstr "Exemples de résultats"
 
 #: src/orchamp_web/templates/partials/schedule.html:8
 #: src/orchamp_web/templates/team_analysis.html:82
-#: src/orchamp_web/templates/team_analysis.html:143
+#: src/orchamp_web/templates/team_analysis.html:145
 msgid "Home"
 msgstr "Domicile"
 
 #: src/orchamp_web/templates/partials/schedule.html:12
 #: src/orchamp_web/templates/team_analysis.html:83
-#: src/orchamp_web/templates/team_analysis.html:144
+#: src/orchamp_web/templates/team_analysis.html:146
 msgid "Away"
 msgstr "Extérieur"
 
 #: src/orchamp_web/templates/team_analysis.html:84
-#: src/orchamp_web/templates/team_analysis.html:145
+#: src/orchamp_web/templates/team_analysis.html:147
 msgid "Result"
 msgstr "Résultat"
 
-#: src/orchamp_web/templates/team_analysis.html:98
-#: src/orchamp_web/templates/team_analysis.html:159
+#: src/orchamp_web/templates/team_analysis.html:100
+#: src/orchamp_web/templates/team_analysis.html:163
 msgid "Draw"
 msgstr "Match nul"
 
-#: src/orchamp_web/templates/team_analysis.html:107
-#: src/orchamp_web/templates/team_analysis.html:168
+#: src/orchamp_web/templates/team_analysis.html:109
+#: src/orchamp_web/templates/team_analysis.html:172
 msgid "No remaining matches"
 msgstr "Aucun match restant"
 
-#: src/orchamp_web/templates/team_analysis.html:110
-#: src/orchamp_web/templates/team_analysis.html:171
+#: src/orchamp_web/templates/team_analysis.html:112
+#: src/orchamp_web/templates/team_analysis.html:175
 msgid "Final standings"
 msgstr "Classement final"
 
-#: src/orchamp_web/templates/team_analysis.html:135
+#: src/orchamp_web/templates/team_analysis.html:137
 #, python-format
 msgid "Worst case scenario (position %(pos)s)"
 msgstr "Pire scénario (position %(pos)s)"
 
-#: src/orchamp_web/templates/partials/assumptions_panel.html:3
+#: src/orchamp_web/templates/partials/assumptions_panel.html:2
+#, python-format
+msgid "Too many assumptions: only the first %(max)s are applied."
+msgstr "Trop d'hypothèses : seules les %(max)s premières sont appliquées."
+
+#: src/orchamp_web/templates/partials/assumptions_panel.html:6
 msgid "Assumptions"
 msgstr "Hypothèses"
 
-#: src/orchamp_web/templates/partials/assumptions_panel.html:8
+#: src/orchamp_web/templates/partials/assumptions_panel.html:11
 msgid "Remove assumption"
 msgstr "Supprimer l'hypothèse"
 
@@ -206,3 +213,7 @@ msgstr "Meilleur–Pire"
 
 #~ msgid "Away win"
 #~ msgstr "Victoire à l'extérieur"
+
+#~ msgid "Too many attempts. Please wait a few minutes and try again."
+#~ msgstr "Trop de tentatives. Veuillez patienter quelques minutes et réessayer."
+

@@ -1,9 +1,12 @@
+{% if excess %}
+<p class="assumptions-warning" role="alert">{{ _("Too many assumptions: only the first %(max)s are applied.") % {"max": max_assumptions} }}</p>
+{% endif %}
 {% if assumptions %}
 <div class="assumptions-panel">
     <h3>{{ _("Assumptions") }}</h3>
     <ul class="assumptions-list">
         {% for a in assumptions %}
-        <li>
+        <li{% if not a.applied %} class="not-applied"{% endif %}>
             <span><strong>{{ a.home_name }}</strong> {{ a.home_score }}–{{ a.away_score }} <strong>{{ a.away_name }}</strong></span>
             <button class="remove-btn" data-home-id="{{ a.home_id }}" data-away-id="{{ a.away_id }}" aria-label="{{ _('Remove assumption') }}" title="{{ _('Remove assumption') }}">×</button>
         </li>

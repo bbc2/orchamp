@@ -4,6 +4,11 @@ Assumption parsing, serialization, and display types for the standings pages.
 
 from dataclasses import dataclass
 
+# Upper bound on user-supplied assumptions applied per request. Each applied
+# assumption feeds the (expensive) solver and mints new cache entries, so the
+# list must not be attacker-sized.
+MAX_ASSUMPTIONS = 10
+
 
 @dataclass(frozen=True)
 class AssumptionEntry:
@@ -30,8 +35,59 @@ class AssumptionDisplay:
     home_score: int
     away_score: int
 
+    # Whether the assumption is actually applied to the computations, or was
+    # dropped by the `MAX_ASSUMPTIONS` cap (shown so the user can remove it).
+    applied: bool = True
 
-def parse_assumptions(raw: list[str]) -> list[AssumptionEntry]:
+
+@dataclass(frozen=True)
+class ParsedAssumptions:
+    """
+    Result of parsing the raw ``?a=`` query-parameter values.
+
+    All valid entries are kept so the UI can list them, but only the first
+    :data:`MAX_ASSUMPTIONS` may feed the solver.
+    """
+
+    entries: list[AssumptionEntry]
+
+    @property
+    def applied(self) -> list[AssumptionEntry]:
+        """
+        The entries that computations may use (capped at `MAX_ASSUMPTIONS`).
+        """
+
+        return self.entries[:MAX_ASSUMPTIONS]
+
+    @property
+    def excess(self) -> bool:
+        """
+        Whether some valid entries are beyond the cap, so the UI can warn.
+        """
+
+        return len(self.entries) > MAX_ASSUMPTIONS
+
+
+def _parse_assumption(s: str) -> AssumptionEntry | None:
+    parts = s.split(":")
+    if len(parts) != 4:
+        return None
+    try:
+        home_score = int(parts[2])
+        away_score = int(parts[3])
+    except ValueError:
+        return None
+    if not (0 <= home_score <= 20) or not (0 <= away_score <= 20):
+        return None
+    return AssumptionEntry(
+        home_id=parts[0],
+        away_id=parts[1],
+        home_score=home_score,
+        away_score=away_score,
+    )
+
+
+def parse_assumptions(raw: list[str]) -> ParsedAssumptions:
     """
     Parse and validate a list of raw ``?a=`` query-parameter values.
 
@@ -39,27 +95,8 @@ def parse_assumptions(raw: list[str]) -> list[AssumptionEntry]:
     Malformed or out-of-range entries are silently dropped.
     """
 
-    result = []
-    for s in raw:
-        parts = s.split(":")
-        if len(parts) != 4:
-            continue
-        try:
-            home_score = int(parts[2])
-            away_score = int(parts[3])
-        except ValueError:
-            continue
-        if not (0 <= home_score <= 20) or not (0 <= away_score <= 20):
-            continue
-        result.append(
-            AssumptionEntry(
-                home_id=parts[0],
-                away_id=parts[1],
-                home_score=home_score,
-                away_score=away_score,
-            )
-        )
-    return result
+    entries = [e for s in raw if (e := _parse_assumption(s)) is not None]
+    return ParsedAssumptions(entries=entries)
 
 
 def serialize_assumption(entry: AssumptionEntry) -> str:

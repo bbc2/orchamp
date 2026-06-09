@@ -830,6 +830,14 @@
             gap: 0.5rem;
         }
 
+        /* Entries beyond the assumptions cap: listed so they can be removed,
+           but dimmed since they don't affect the projections. The remove
+           button keeps full contrast as the expected way out. */
+        .assumptions-list li.not-applied span {
+            opacity: 0.45;
+            text-decoration: line-through;
+        }
+
         .remove-btn {
             background: none;
             border: 1px solid var(--border);
@@ -852,6 +860,16 @@
             font-style: italic;
             font-size: 0.875rem;
             margin: 0 0 1rem;
+        }
+
+        .assumptions-warning {
+            border: 1px solid color-mix(in srgb, var(--predict) 55%, var(--border));
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            margin: 0 0 0.75rem;
+            background: color-mix(in srgb, var(--predict) 10%, var(--bg));
+            color: var(--predict-text);
+            font-size: 0.875rem;
         }
 
         .assumptions-banner {

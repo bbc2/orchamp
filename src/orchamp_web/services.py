@@ -23,7 +23,11 @@ from orchamp.models import (
 )
 from orchamp.ranking import RankedTeam, compute_rankings
 from orchamp.solvers.cpsat import CpSatSolver
-from orchamp_web.assumptions import AssumptionDisplay, AssumptionEntry
+from orchamp_web.assumptions import (
+    AssumptionDisplay,
+    AssumptionEntry,
+    ParsedAssumptions,
+)
 from orchamp_web.cache import (
     ContentStore,
     RootStore,
@@ -578,10 +582,13 @@ class StandingsService:
     async def get_assumption_displays(
         self,
         league_key: str,
-        assumptions: list[AssumptionEntry],
+        assumptions: ParsedAssumptions,
     ) -> list[AssumptionDisplay]:
         """
         Return display objects for assumptions that match a remaining match.
+
+        All of them are listed (so the user can remove any), with `applied`
+        telling whether the entry made the `MAX_ASSUMPTIONS` cut.
         """
 
         league = self._config.leagues.get(league_key)
@@ -592,6 +599,7 @@ class StandingsService:
         cached_state = await self._get_or_fetch_state(league_key, league)
         state = ChampionshipState.from_dict(cached_state.value)
         remaining_set = set(state.remaining_matches)
+        applied = set(assumptions.applied)
 
         return [
             AssumptionDisplay(
@@ -601,8 +609,9 @@ class StandingsService:
                 away_name=state.team_by_id(a.away_id).name,
                 home_score=a.home_score,
                 away_score=a.away_score,
+                applied=a in applied,
             )
-            for a in assumptions
+            for a in assumptions.entries
             if Match(home=a.home_id, away=a.away_id) in remaining_set
         ]
 

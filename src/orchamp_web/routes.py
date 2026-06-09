@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from orchamp_web.assumptions import (
+    MAX_ASSUMPTIONS,
     AssumptionDisplay,
     parse_assumptions,
     serialize_assumption,
@@ -213,7 +214,7 @@ async def web_standings_table(
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
     standings = await service.get_standings(league_key)
-    assumptions = parse_assumptions(a)
+    assumptions = parse_assumptions(a).applied
     projected_positions = await service.get_projected_positions(league_key, assumptions)
 
     return templates.TemplateResponse(
@@ -268,14 +269,16 @@ async def web_assumptions_panel(
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    assumptions = parse_assumptions(a)
-    displays = await service.get_assumption_displays(league_key, assumptions)
+    parsed = parse_assumptions(a)
+    displays = await service.get_assumption_displays(league_key, parsed)
 
     return templates.TemplateResponse(
         request=request,
         name="partials/assumptions_panel.html",
         context={
             "assumptions": displays,
+            "excess": parsed.excess,
+            "max_assumptions": MAX_ASSUMPTIONS,
         },
     )
 
@@ -312,7 +315,7 @@ async def web_team_analysis(
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    assumptions = parse_assumptions(a)
+    assumptions = parse_assumptions(a).applied
     analysis = await service.get_team_analysis(
         league_key, team_id, assumptions=assumptions
     )
