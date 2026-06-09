@@ -4,7 +4,7 @@ Route handlers for the web application.
 
 import asyncio
 from typing import Annotated, Any
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -37,12 +37,38 @@ def _safe_next(next_path: str) -> str:
     Sanitise a post-login redirect target to prevent open redirects.
 
     Only same-site, absolute paths are honoured; anything else (absolute URLs,
-    protocol-relative ``//host`` paths, ...) falls back to the home page.
+    protocol-relative ``//host`` paths, backslash variants browsers normalise
+    to ``//``, ...) falls back to the home page.
     """
 
-    if next_path.startswith("/") and not next_path.startswith("//"):
+    if (
+        next_path.startswith("/")
+        and not next_path.startswith("//")
+        and "\\" not in next_path
+    ):
         return next_path
     return "/"
+
+
+def _safe_referer(referer: str) -> str:
+    """
+    Reduce a ``Referer`` header to a same-site redirect target.
+
+    Only the path and query survive; the scheme and host are dropped so that a
+    cross-site referer cannot turn the redirect into an open one.
+    """
+
+    try:
+        parts = urlsplit(referer)
+    except ValueError:
+        return "/"
+
+    target = parts.path
+
+    if parts.query:
+        target += "?" + parts.query
+
+    return _safe_next(target)
 
 
 @router.get("/set-lang", response_class=RedirectResponse, include_in_schema=False)
@@ -55,7 +81,7 @@ def set_lang(
     """
     if lang not in SUPPORTED_LOCALES:
         lang = "en"
-    redirect_to = request.headers.get("referer", "/")
+    redirect_to = _safe_referer(request.headers.get("referer", ""))
     response = RedirectResponse(url=redirect_to, status_code=303)
     response.set_cookie(
         key="lang",
