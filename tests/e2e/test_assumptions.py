@@ -68,6 +68,47 @@ def test_assumption_entry_and_removal(page: Page) -> None:
     expect(page).not_to_have_url(re.compile(r"[?&]a="))
 
 
+def test_assumptions_beyond_the_cap_warn_and_are_not_applied(page: Page) -> None:
+    # docker_config.toml sets `max_assumptions = 2` while the fixture league
+    # has 3 pending matches, so filling every row exceeds the cap.
+    page.goto("/")
+    page.locator(".nav-league").first.click()
+
+    rows = page.locator("tr.match-pending[data-home-id]")
+    expect(rows.first).to_be_visible()
+    matches = [
+        (row.get_attribute("data-home-id"), row.get_attribute("data-away-id"))
+        for row in rows.all()
+    ]
+    assert len(matches) == 3
+
+    for home_id, away_id in matches:
+        assert home_id and away_id
+        _enter_score(page, home_id, away_id, "1", "0")
+
+    # All entries are listed (each removable), but the warning explains that
+    # only the first 2 are applied; the last-entered one is marked as dropped.
+    warning = page.locator(".assumptions-warning")
+    expect(warning).to_be_visible()
+    expect(warning).to_contain_text("2")
+    expect(page.locator(".assumptions-list li")).to_have_count(3)
+    not_applied = page.locator(".assumptions-list li.not-applied")
+    expect(not_applied).to_have_count(1)
+    last_home_id, last_away_id = matches[-1]
+    expect(
+        not_applied.locator(
+            f'.remove-btn[data-home-id="{last_home_id}"][data-away-id="{last_away_id}"]'
+        )
+    ).to_be_visible()
+
+    # Removing the dropped entry brings the list back under the cap.
+    not_applied.locator(".remove-btn").click()
+
+    expect(page.locator(".assumptions-warning")).to_have_count(0)
+    expect(page.locator(".assumptions-list li")).to_have_count(2)
+    expect(page.locator(".assumptions-list li.not-applied")).to_have_count(0)
+
+
 def test_assumptions_persist_across_reload_and_url(
     page: Page, new_context: Callable[..., BrowserContext]
 ) -> None:

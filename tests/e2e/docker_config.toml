@@ -1,4 +1,5 @@
-max_assumptions = 10
+# Low cap so the e2e tests can exceed it.
+max_assumptions = 2
 
 [leagues."small"]
 source = "json"
