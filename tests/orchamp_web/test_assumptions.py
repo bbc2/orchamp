@@ -1,27 +1,31 @@
 from orchamp_web.assumptions import (
-    MAX_ASSUMPTIONS,
     AssumptionEntry,
     parse_assumptions,
     serialize_assumption,
 )
 
+# Cap used throughout these tests; the real value comes from the app config.
+MAX_ASSUMPTIONS = 10
+
 
 class TestParseAssumptions:
     def test_empty_list(self) -> None:
-        result = parse_assumptions([])
+        result = parse_assumptions([], MAX_ASSUMPTIONS)
 
         assert result.entries == []
         assert not result.excess
 
     def test_valid_single_entry(self) -> None:
-        result = parse_assumptions(["alpha:beta:3:1"])
+        result = parse_assumptions(["alpha:beta:3:1"], MAX_ASSUMPTIONS)
 
         assert result.entries == [
             AssumptionEntry(home_id="alpha", away_id="beta", home_score=3, away_score=1)
         ]
 
     def test_valid_multiple_entries(self) -> None:
-        result = parse_assumptions(["alpha:beta:3:1", "gamma:delta:0:0"])
+        result = parse_assumptions(
+            ["alpha:beta:3:1", "gamma:delta:0:0"], MAX_ASSUMPTIONS
+        )
 
         assert result.entries == [
             AssumptionEntry(
@@ -33,39 +37,41 @@ class TestParseAssumptions:
         ]
 
     def test_boundary_scores(self) -> None:
-        result = parse_assumptions(["a:b:0:20"])
+        result = parse_assumptions(["a:b:0:20"], MAX_ASSUMPTIONS)
 
         assert result.entries == [
             AssumptionEntry(home_id="a", away_id="b", home_score=0, away_score=20)
         ]
 
     def test_too_few_parts_is_skipped(self) -> None:
-        result = parse_assumptions(["alpha:beta:3"])
+        result = parse_assumptions(["alpha:beta:3"], MAX_ASSUMPTIONS)
 
         assert result.entries == []
 
     def test_too_many_parts_is_skipped(self) -> None:
-        result = parse_assumptions(["alpha:beta:3:1:extra"])
+        result = parse_assumptions(["alpha:beta:3:1:extra"], MAX_ASSUMPTIONS)
 
         assert result.entries == []
 
     def test_non_integer_score_is_skipped(self) -> None:
-        result = parse_assumptions(["alpha:beta:three:1"])
+        result = parse_assumptions(["alpha:beta:three:1"], MAX_ASSUMPTIONS)
 
         assert result.entries == []
 
     def test_score_above_max_is_skipped(self) -> None:
-        result = parse_assumptions(["alpha:beta:21:1"])
+        result = parse_assumptions(["alpha:beta:21:1"], MAX_ASSUMPTIONS)
 
         assert result.entries == []
 
     def test_negative_score_is_skipped(self) -> None:
-        result = parse_assumptions(["alpha:beta:-1:1"])
+        result = parse_assumptions(["alpha:beta:-1:1"], MAX_ASSUMPTIONS)
 
         assert result.entries == []
 
     def test_invalid_entries_are_filtered_keeping_valid(self) -> None:
-        result = parse_assumptions(["alpha:beta:3:1", "bad", "gamma:delta:0:0"])
+        result = parse_assumptions(
+            ["alpha:beta:3:1", "bad", "gamma:delta:0:0"], MAX_ASSUMPTIONS
+        )
 
         assert result.entries == [
             AssumptionEntry(
@@ -80,7 +86,7 @@ class TestParseAssumptions:
     def test_excess_entries_are_listed_but_not_applied(self) -> None:
         raw = [f"home{i}:away{i}:1:0" for i in range(MAX_ASSUMPTIONS + 5)]
 
-        result = parse_assumptions(raw)
+        result = parse_assumptions(raw, MAX_ASSUMPTIONS)
 
         assert len(result.entries) == MAX_ASSUMPTIONS + 5
         assert result.applied == result.entries[:MAX_ASSUMPTIONS]
@@ -89,7 +95,7 @@ class TestParseAssumptions:
     def test_exactly_at_the_cap_is_not_excess(self) -> None:
         raw = [f"home{i}:away{i}:1:0" for i in range(MAX_ASSUMPTIONS)]
 
-        result = parse_assumptions(raw)
+        result = parse_assumptions(raw, MAX_ASSUMPTIONS)
 
         assert result.applied == result.entries
         assert not result.excess
@@ -97,7 +103,7 @@ class TestParseAssumptions:
     def test_invalid_entries_do_not_count_towards_the_cap(self) -> None:
         raw = ["bad"] * MAX_ASSUMPTIONS + ["alpha:beta:3:1"]
 
-        result = parse_assumptions(raw)
+        result = parse_assumptions(raw, MAX_ASSUMPTIONS)
 
         assert result.entries == [
             AssumptionEntry(home_id="alpha", away_id="beta", home_score=3, away_score=1)
@@ -120,6 +126,6 @@ class TestSerializeAssumption:
             home_id="team-1", away_id="team-2", home_score=10, away_score=7
         )
 
-        parsed = parse_assumptions([serialize_assumption(entry)])
+        parsed = parse_assumptions([serialize_assumption(entry)], MAX_ASSUMPTIONS)
 
         assert parsed.entries == [entry]

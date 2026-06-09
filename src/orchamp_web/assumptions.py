@@ -4,11 +4,6 @@ Assumption parsing, serialization, and display types for the standings pages.
 
 from dataclasses import dataclass
 
-# Upper bound on user-supplied assumptions applied per request. Each applied
-# assumption feeds the (expensive) solver and mints new cache entries, so the
-# list must not be attacker-sized.
-MAX_ASSUMPTIONS = 10
-
 
 @dataclass(frozen=True)
 class AssumptionEntry:
@@ -36,7 +31,7 @@ class AssumptionDisplay:
     away_score: int
 
     # Whether the assumption is actually applied to the computations, or was
-    # dropped by the `MAX_ASSUMPTIONS` cap (shown so the user can remove it).
+    # dropped by the `max_assumptions` cap (shown so the user can remove it).
     applied: bool = True
 
 
@@ -46,18 +41,19 @@ class ParsedAssumptions:
     Result of parsing the raw ``?a=`` query-parameter values.
 
     All valid entries are kept so the UI can list them, but only the first
-    :data:`MAX_ASSUMPTIONS` may feed the solver.
+    `max_assumptions` may feed the solver.
     """
 
     entries: list[AssumptionEntry]
+    max_assumptions: int
 
     @property
     def applied(self) -> list[AssumptionEntry]:
         """
-        The entries that computations may use (capped at `MAX_ASSUMPTIONS`).
+        The entries that computations may use (capped at `max_assumptions`).
         """
 
-        return self.entries[:MAX_ASSUMPTIONS]
+        return self.entries[: self.max_assumptions]
 
     @property
     def excess(self) -> bool:
@@ -65,7 +61,7 @@ class ParsedAssumptions:
         Whether some valid entries are beyond the cap, so the UI can warn.
         """
 
-        return len(self.entries) > MAX_ASSUMPTIONS
+        return len(self.entries) > self.max_assumptions
 
 
 def _parse_assumption(s: str) -> AssumptionEntry | None:
@@ -87,7 +83,7 @@ def _parse_assumption(s: str) -> AssumptionEntry | None:
     )
 
 
-def parse_assumptions(raw: list[str]) -> ParsedAssumptions:
+def parse_assumptions(raw: list[str], max_assumptions: int) -> ParsedAssumptions:
     """
     Parse and validate a list of raw ``?a=`` query-parameter values.
 
@@ -96,7 +92,7 @@ def parse_assumptions(raw: list[str]) -> ParsedAssumptions:
     """
 
     entries = [e for s in raw if (e := _parse_assumption(s)) is not None]
-    return ParsedAssumptions(entries=entries)
+    return ParsedAssumptions(entries=entries, max_assumptions=max_assumptions)
 
 
 def serialize_assumption(entry: AssumptionEntry) -> str:

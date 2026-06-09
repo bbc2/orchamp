@@ -588,7 +588,7 @@ class StandingsService:
         Return display objects for assumptions that match a remaining match.
 
         All of them are listed (so the user can remove any), with `applied`
-        telling whether the entry made the `MAX_ASSUMPTIONS` cut.
+        telling whether the entry made the `max_assumptions` cut.
         """
 
         league = self._config.leagues.get(league_key)

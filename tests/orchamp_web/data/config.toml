@@ -7,6 +7,8 @@
 #   2. Run the web app:
 #      ORCHAMP_CONFIG=_local/config_local.toml uvicorn orchamp_web.app:create --factory --port 8080
 
+max_assumptions = 10
+
 [leagues."small"]
 source = "json"
 url = "http://localhost:8081/orchamp/cli/data/small_league.json"

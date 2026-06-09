@@ -39,6 +39,11 @@ class AppConfig:
     page_ttl_seconds: int
     leagues: dict[str, LeagueConfig]
 
+    # Upper bound on user-supplied assumptions applied per request. Each
+    # applied assumption feeds the (expensive) solver and mints new cache
+    # entries, so the list must not be attacker-sized.
+    max_assumptions: int
+
     @classmethod
     def from_file(cls, config_path: Path) -> "AppConfig":
         with config_path.open("rb") as f:
@@ -57,6 +62,7 @@ class AppConfig:
             cache_dir=Path.home() / ".cache" / "orchamp_web",
             page_ttl_seconds=(24 * 3600),
             leagues=leagues,
+            max_assumptions=data["max_assumptions"],
         )
 
 
