@@ -76,7 +76,6 @@ run:
         ORCHAMP_CONFIG=_local/config.toml \
         ORCHAMP_LOG_LEVEL=DEBUG \
         ORCHAMP_HTTPS_ONLY=false \
-        ORCHAMP_AUTH_DISABLED=true \
         uvicorn --factory --reload orchamp_web.app:create
 
 # Build the Docker image and run E2E tests against it
