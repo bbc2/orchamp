@@ -1,0 +1,7 @@
+{# htmx response for the standings-table endpoint: the table itself goes into
+   the requesting target, and the assumptions panel rides along out-of-band so
+   both views always come from the same request. #}
+{% include "partials/standings_table.html" %}
+<div id="assumptions-panel" hx-swap-oob="innerHTML">
+    {% include "partials/assumptions_panel.html" %}
+</div>

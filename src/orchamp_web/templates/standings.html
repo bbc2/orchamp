@@ -15,8 +15,8 @@
     <div>
         <h1>{{ league.name }}</h1>
         <a class="source-link" href="{{ league.url }}" target="_blank">{{ _("Source data ↗") }}</a>
-        <button class="refresh-btn" data-base-url="/web/{{ league_key }}/standings-table"
-            hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table" hx-swap="innerHTML">
+        <button class="refresh-btn" hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table"
+            hx-swap="innerHTML" hx-sync="#standings-table:replace" hx-indicator="#standings-table, #assumptions-panel">
             {{ _("Refresh") }}
         </button>
     </div>
@@ -52,21 +52,32 @@
 
 <script src="/static/assumptions.js"></script>
 <script>
-    // The pending-match rows (and the inputs we wire up) live in the schedule,
-    // so init runs once the schedule is present: immediately when eager, or on
-    // its lazy htmx swap. The standings table loads independently.
-    function orchampStandingsInit() {
+    // Synchronous, before htmx fires any hx-trigger="load" request, so the
+    // configRequest hook can already decorate them with the assumptions.
+    orchampInitAssumptions('{{ league_key }}');
+
+    // The pending-match rows (and the inputs we prefill) live in the schedule,
+    // so phase 2 runs once the schedule is present: immediately when eager, or
+    // on its lazy htmx swap.
+    function orchampScheduleReady(tableAlreadyProjected) {
         var validMatchKeys = Array.from(
             document.querySelectorAll('tr.match-pending[data-home-id]')
         ).map(function (r) { return r.dataset.homeId + ':' + r.dataset.awayId; });
-        orchampInitStandingsPage('{{ league_key }}', validMatchKeys);
+        orchampInitSchedule(validMatchKeys, tableAlreadyProjected);
     }
     {% if lazy %}
     document.getElementById('schedule').addEventListener('htmx:afterSwap', function () {
-        orchampStandingsInit();
+        // The table's own lazy load already carried the assumptions, so no
+        // refetch is needed beyond pruning.
+        orchampScheduleReady(true);
     });
     {% else %}
-    orchampStandingsInit();
+    // The eager server render did not apply assumptions, so refetch if any.
+    // htmx initializes on DOMContentLoaded (its listener is registered first,
+    // from the head), so by the time this runs it can receive the trigger.
+    document.addEventListener('DOMContentLoaded', function () {
+        orchampScheduleReady(false);
+    });
     {% endif %}
 </script>
 {% endblock %}

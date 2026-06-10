@@ -109,6 +109,25 @@ def test_assumptions_beyond_the_cap_warn_and_are_not_applied(page: Page) -> None
     expect(page.locator(".assumptions-list li.not-applied")).to_have_count(0)
 
 
+def test_out_of_range_scores_withdraw_the_assumption(page: Page) -> None:
+    home_id, away_id = _open_first_pending_match(page)
+
+    _enter_score(page, home_id, away_id, "12", "0")
+    expect(page.locator(".assumptions-list li")).to_contain_text("12–0")
+
+    # Editing the score out of range visibly flags the input and withdraws the
+    # assumption, instead of silently keeping a stale value in the list (the
+    # old code kept the intermediate "1" of "12" when typing e.g. "21").
+    row = page.locator(
+        f'tr.match-pending[data-home-id="{home_id}"][data-away-id="{away_id}"]'
+    )
+    home_input = row.locator('input.score-input[data-role="home"]')
+    home_input.fill("21")
+
+    expect(page.locator(".no-assumptions")).to_be_visible()
+    assert home_input.evaluate("el => el.matches(':out-of-range')")
+
+
 def test_assumptions_persist_across_reload_and_url(
     page: Page, new_context: Callable[..., BrowserContext]
 ) -> None:

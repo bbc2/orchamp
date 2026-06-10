@@ -9,9 +9,9 @@
     return Number.isInteger(n) && n >= SCORE_MIN && n <= SCORE_MAX;
   }
 
-  // Validate a score (string from a URL param, or number from localStorage
-  // JSON) into an integer, or null. Strings must be plain digits (e.g. "5x" is
-  // rejected, not silently truncated).
+  // Validate a score (string from a URL param or an input, or number from
+  // localStorage JSON) into an integer, or null. Strings must be plain digits
+  // (e.g. "5x" is rejected).
   function scoreFrom(v) {
     if (typeof v === "number") {
       return intInRange(v) ? v : null;
@@ -116,6 +116,8 @@
         .join("&");
     }
 
+    // Drop entries whose match is no longer pending; returns whether anything
+    // was dropped (so the caller knows a refetch is needed).
     pruneStale(validKeys) {
       let changed = false;
       this._map.forEach((_, key) => {
@@ -125,6 +127,7 @@
         }
       });
       if (changed) this._persist();
+      return changed;
     }
 
     _persist() {
@@ -135,138 +138,109 @@
       const newUrl = qs
         ? `${window.location.pathname}?${qs}`
         : window.location.pathname;
-      history.replaceState(null, "", newUrl);
+      // Best-effort like localStorage: Safari throttles replaceState and
+      // throws when typing fast; the next persist catches the URL up.
+      try {
+        history.replaceState(null, "", newUrl);
+      } catch (_) {}
     }
   }
 
-  function updateTeamLinks(store) {
-    const entries = store.entries();
-    document.querySelectorAll("a.team-link").forEach((link) => {
-      const url = new URL(link.href);
-      url.searchParams.delete("a");
-      entries.forEach((e) => {
-        url.searchParams.append("a", serializeParam(e));
-      });
-      link.href = url.toString();
-    });
-  }
-
-  function updateRefreshButton(store) {
-    const btn = document.querySelector(".refresh-btn[data-base-url]");
-    if (!btn) return;
-    const qs = store.toQueryString();
-    btn.setAttribute("hx-get", btn.dataset.baseUrl + (qs ? `?${qs}` : ""));
-  }
-
-  function updateDynamicUrls(store) {
-    updateTeamLinks(store);
-    updateRefreshButton(store);
-  }
-
-  function refreshAssumptionsPanel(leagueKey, store) {
-    const qs = store.toQueryString();
-    const panelUrl = `/web/${leagueKey}/assumptions-panel${qs ? `?${qs}` : ""}`;
-    htmx.ajax("GET", panelUrl, {
-      target: "#assumptions-panel",
-      swap: "innerHTML",
-    });
-    const tableUrl = `/web/${leagueKey}/standings-table${qs ? `?${qs}` : ""}`;
-    htmx.ajax("GET", tableUrl, {
-      target: "#standings-table",
-      swap: "innerHTML",
-    });
-  }
-
-  function removeAssumption(homeId, awayId) {
+  // htmx owns all standings-table fetching (the lazy load, the refresh button,
+  // the score-input trigger on the schedule table). Decorating the request
+  // here means every fetch carries the same canonical ?a= state at the moment
+  // it is issued, whichever element triggered it.
+  document.body.addEventListener("htmx:configRequest", (event) => {
     const store = window._orchampStore;
     if (!store) return;
-    store.remove(homeId, awayId);
+    if (!event.detail.path.endsWith("/standings-table")) return;
+    for (const entry of store.entries()) {
+      event.detail.parameters.append("a", serializeParam(entry));
+    }
+  });
+
+  // Ask the schedule table to refetch the standings table (whose response also
+  // carries the assumptions panel out-of-band).
+  function refreshProjection() {
+    const table = document.querySelector("table.schedule-table");
+    if (table) htmx.trigger(table, "refresh-projection");
+  }
+
+  // Mirror a row's two inputs into the store: a complete valid pair is an
+  // assumption; anything else (half-filled, out-of-range, junk the browser
+  // reports as "") is none. The inputs are the source of truth, the store only
+  // reflects them.
+  function syncRow(row) {
+    const store = window._orchampStore;
+    if (!store) return;
+    const homeInput = row.querySelector('input.score-input[data-role="home"]');
+    const awayInput = row.querySelector('input.score-input[data-role="away"]');
+    const home = homeInput ? scoreFrom(homeInput.value.trim()) : null;
+    const away = awayInput ? scoreFrom(awayInput.value.trim()) : null;
+    if (home !== null && away !== null) {
+      store.add(row.dataset.homeId, row.dataset.awayId, home, away);
+    } else {
+      store.remove(row.dataset.homeId, row.dataset.awayId);
+    }
+  }
+
+  document.addEventListener("input", (event) => {
+    const target = event.target;
+    if (!target.classList?.contains("score-input")) return;
+    const row = target.closest("tr.match-pending[data-home-id]");
+    if (row) syncRow(row);
+  });
+
+  // Delegated so it survives the htmx swaps that re-render the panel, and
+  // avoids inline onclick (CSP-blocked, plus an id-escaping hazard).
+  document.addEventListener("click", (event) => {
+    const btn = event.target.closest?.(".remove-btn[data-home-id]");
+    if (!btn) return;
+    const store = window._orchampStore;
+    if (!store) return;
+    store.remove(btn.dataset.homeId, btn.dataset.awayId);
     const row = document.querySelector(
-      `tr.match-pending[data-home-id="${CSS.escape(homeId)}"][data-away-id="${CSS.escape(awayId)}"]`,
+      `tr.match-pending[data-home-id="${CSS.escape(btn.dataset.homeId)}"][data-away-id="${CSS.escape(btn.dataset.awayId)}"]`,
     );
     if (row) {
       row.querySelectorAll("input.score-input").forEach((input) => {
         input.value = "";
       });
     }
-    updateDynamicUrls(store);
-    refreshAssumptionsPanel(window._orchampLeagueKey, store);
-  }
-
-  // Delegated so it survives the htmx swaps that re-render the panel, and
-  // avoids inline onclick (CSP-blocked, plus an id-escaping hazard).
-  document.addEventListener("click", (event) => {
-    const btn = event.target.closest?.(".remove-btn[data-home-id]");
-    if (btn) {
-      removeAssumption(btn.dataset.homeId, btn.dataset.awayId);
-    }
+    refreshProjection();
   });
 
-  window.orchampInitStandingsPage = (leagueKey, validMatchKeys) => {
+  // Phase 1, synchronous at page load, before htmx fires any
+  // hx-trigger="load" request: the store must already exist so configRequest
+  // can decorate the lazy standings-table fetch with the assumptions.
+  window.orchampInitAssumptions = (leagueKey) => {
     const store = new AssumptionStore(leagueKey);
     store.load();
-    store.pruneStale(new Set(validMatchKeys));
     window._orchampStore = store;
-    window._orchampLeagueKey = leagueKey;
+  };
 
-    const timers = {};
-    function debounce(key, fn, delay) {
-      clearTimeout(timers[key]);
-      timers[key] = setTimeout(fn, delay);
-    }
-
-    // Prefill each pending match's inputs from stored assumptions and wire up
-    // change handling in a single pass over the rows.
+  // Phase 2, once the pending-match rows exist (immediately when eager, after
+  // the lazy swap otherwise): prefill the inputs from the store and refetch
+  // the table if it was rendered without the assumptions it should show.
+  window.orchampInitSchedule = (validMatchKeys, tableAlreadyProjected) => {
+    const store = window._orchampStore;
+    const pruned = store.pruneStale(new Set(validMatchKeys));
     document
       .querySelectorAll("tr.match-pending[data-home-id]")
       .forEach((row) => {
-        const homeId = row.dataset.homeId;
-        const awayId = row.dataset.awayId;
+        const entry = store.get(row.dataset.homeId, row.dataset.awayId);
+        if (!entry) return;
         const homeInput = row.querySelector(
           'input.score-input[data-role="home"]',
         );
         const awayInput = row.querySelector(
           'input.score-input[data-role="away"]',
         );
-
-        const entry = store.get(homeId, awayId);
-        if (entry) {
-          if (homeInput) homeInput.value = entry[2];
-          if (awayInput) awayInput.value = entry[3];
-        }
-
-        function onChange() {
-          const hVal = homeInput ? homeInput.value.trim() : "";
-          const aVal = awayInput ? awayInput.value.trim() : "";
-          if (hVal !== "" && aVal !== "") {
-            const h = scoreFrom(hVal);
-            const a = scoreFrom(aVal);
-            if (h !== null && a !== null) {
-              store.add(homeId, awayId, h, a);
-            }
-          } else if (hVal === "" && aVal === "") {
-            store.remove(homeId, awayId);
-          }
-          debounce(
-            "panel",
-            () => {
-              updateDynamicUrls(store);
-              refreshAssumptionsPanel(leagueKey, store);
-            },
-            400,
-          );
-        }
-
-        if (homeInput) homeInput.addEventListener("input", onChange);
-        if (awayInput) awayInput.addEventListener("input", onChange);
+        if (homeInput) homeInput.value = entry[2];
+        if (awayInput) awayInput.value = entry[3];
       });
-
-    updateDynamicUrls(store);
-
-    // The table loads its own base content (server-rendered, or hx-trigger="load"
-    // when lazy); refetch here only to project assumptions on top of it.
-    if (store.entries().length > 0) {
-      refreshAssumptionsPanel(leagueKey, store);
+    if ((!tableAlreadyProjected && store.entries().length > 0) || pruned) {
+      refreshProjection();
     }
   };
 })();

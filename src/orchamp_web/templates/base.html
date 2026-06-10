@@ -82,6 +82,8 @@
             --predict: #f59e0b;
             --predict-text: #fbbf24;
             --predict-contrast: #1c1206;
+            /* Red accent for rejected input (e.g. an out-of-range score). */
+            --invalid: #f87171;
             color-scheme: dark;
         }
 
@@ -98,6 +100,7 @@
             --predict: #d97706;
             --predict-text: #b45309;
             --predict-contrast: #ffffff;
+            --invalid: #dc2626;
             color-scheme: light;
         }
 
@@ -792,8 +795,27 @@
             outline-offset: 1px;
         }
 
+        /* A value the server would reject (out of range, or junk the browser
+           reports as empty) is not an assumption: show it as such instead of
+           letting it silently linger in the table. */
+        .score-input:invalid,
+        .score-input:out-of-range {
+            border-color: var(--invalid);
+            color: var(--invalid);
+        }
+
         #assumptions-panel {
             margin-bottom: 1rem;
+        }
+
+        /* While a standings refetch (and its projection solve) is in flight,
+           htmx marks both targets via hx-indicator: fade them so the wait
+           reads as "computing" rather than "stuck". The transition delay keeps
+           fast responses from flashing. */
+        #standings-table.htmx-request,
+        #assumptions-panel.htmx-request {
+            opacity: 0.5;
+            transition: opacity 0.15s ease 0.15s;
         }
 
         .assumptions-panel {

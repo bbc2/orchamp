@@ -207,22 +207,35 @@ async def web_standings_table(
     a: Annotated[list[str], Query()] = [],
 ) -> HTMLResponse:
     """
-    Render just the standings table (for HTMX partial updates).
+    Render the standings table plus the assumptions panel (HTMX target).
+
+    The panel rides along as an out-of-band swap so that the projected table
+    and the assumption list always reflect the same request — they cannot get
+    out of sync with each other.
     """
     if league_key not in config.leagues:
         raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
 
-    standings = await service.get_standings(league_key)
-    assumptions = parse_assumptions(a, config.max_assumptions).applied
-    projected_positions = await service.get_projected_positions(league_key, assumptions)
+    parsed = parse_assumptions(a, config.max_assumptions)
+    standings, projected_positions, displays = await asyncio.gather(
+        service.get_standings(league_key),
+        service.get_projected_positions(league_key, parsed.applied),
+        service.get_assumption_displays(league_key, parsed),
+    )
 
     return templates.TemplateResponse(
         request=request,
-        name="partials/standings_table.html",
+        name="partials/standings_table_with_panel.html",
         context={
             "league_key": league_key,
             "standings": standings,
             "projected_positions": projected_positions,
+            "assumption_qs": urlencode(
+                [("a", serialize_assumption(asmp)) for asmp in parsed.entries]
+            ),
+            "assumptions": displays,
+            "excess": parsed.excess,
+            "max_assumptions": config.max_assumptions,
         },
     )
 
@@ -249,35 +262,6 @@ async def web_schedule(
         context={
             "league_key": league_key,
             "rounds": rounds,
-        },
-    )
-
-
-@router.get("/web/{league_key}/assumptions-panel", response_class=HTMLResponse)
-async def web_assumptions_panel(
-    request: Request,
-    league_key: str,
-    config: Annotated[AppConfig, Depends(get_config)],
-    service: Annotated[StandingsService, Depends(get_service)],
-    templates: Annotated[Jinja2Templates, Depends(get_templates)],
-    a: Annotated[list[str], Query()] = [],
-) -> HTMLResponse:
-    """
-    Render the assumptions panel partial (HTMX target).
-    """
-    if league_key not in config.leagues:
-        raise HTTPException(status_code=404, detail=f"Unknown league: {league_key}")
-
-    parsed = parse_assumptions(a, config.max_assumptions)
-    displays = await service.get_assumption_displays(league_key, parsed)
-
-    return templates.TemplateResponse(
-        request=request,
-        name="partials/assumptions_panel.html",
-        context={
-            "assumptions": displays,
-            "excess": parsed.excess,
-            "max_assumptions": config.max_assumptions,
         },
     )
 

@@ -12,7 +12,8 @@
         <tr>
             <td class="text-center col-numeric">{{ team.position }}</td>
             <td>
-                <a href="/web/{{ league_key }}/team/{{ team.team_id }}/" class="team-link">{{ team.team_name }}</a>
+                <a href="/web/{{ league_key }}/team/{{ team.team_id }}/{% if assumption_qs %}?{{ assumption_qs }}{% endif %}"
+                    class="team-link">{{ team.team_name }}</a>
             </td>
             <td class="text-center col-numeric">{{ team.points }}</td>
             <td class="text-center col-numeric col-best-worst">

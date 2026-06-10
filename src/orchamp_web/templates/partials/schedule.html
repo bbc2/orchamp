@@ -1,6 +1,14 @@
 {% if rounds %}
 <h2>{{ _("Match schedule") }}</h2>
-<table class="schedule-table">
+{# Typing in a score input (or a programmatic refresh-projection event) refetches the
+   standings table. The response also carries the assumptions panel out-of-band, so both
+   always reflect the same request.
+
+   Syncing on #standings-table aborts any in-flight fetch for it (including its own lazy
+   load) so a stale response can never overwrite a newer one. #}
+<table class="schedule-table" hx-get="/web/{{ league_key }}/standings-table" hx-target="#standings-table"
+    hx-swap="innerHTML" hx-trigger="input delay:400ms, refresh-projection" hx-sync="#standings-table:replace"
+    hx-indicator="#standings-table, #assumptions-panel">
     <thead>
         <tr>
             <th class="col-round">{{ _("Round") }}</th>
