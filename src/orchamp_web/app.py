@@ -73,16 +73,16 @@ def _parse_log_level(level_str: str) -> int | None:
 
 
 def _load_config() -> AppConfig:
-    config_path = os.environ.get("ORCHAMP_CONFIG")
+    config_dir = os.environ.get("ORCHAMP_CONFIG")
 
-    if config_path is None:
+    if config_dir is None:
         logger.error("ORCHAMP_CONFIG environment variable is not set")
         exit(1)
 
     assert (
-        config_path is not None
+        config_dir is not None
     )  # Remove when https://github.com/astral-sh/ty/issues/690 is fixed.
-    return AppConfig.from_file(Path(config_path))
+    return AppConfig.from_file(Path(config_dir) / "config.toml")
 
 
 def create() -> FastAPI:

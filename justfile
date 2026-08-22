@@ -73,7 +73,7 @@ run:
     HTTP_PID=$!
     trap "kill $HTTP_PID 2>/dev/null" EXIT
     env \
-        ORCHAMP_CONFIG=_local/config.toml \
+        ORCHAMP_CONFIG=_local/config \
         ORCHAMP_LOG_LEVEL=DEBUG \
         ORCHAMP_HTTPS_ONLY=false \
         uvicorn --factory --reload orchamp_web.app:create
@@ -103,7 +103,7 @@ docker-build:
 # Build and run the Docker image
 docker-run: docker-build
     docker run --rm --publish 8080:8080 \
-        --volume "$(pwd)/_local/config.toml:/home/one/app/config.toml:ro" \
+        --volume "$(pwd)/_local/config:/home/one/app/config:ro" \
         --env ORCHAMP_SECRET_KEY \
         --env ORCHAMP_BETA_PASSWORD_HASH \
         --env ORCHAMP_HTTPS_ONLY=false \

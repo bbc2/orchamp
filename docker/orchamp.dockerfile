@@ -86,8 +86,9 @@ COPY --from=builder-static \
     /home/one/app/src/orchamp_web/static
 USER root
 RUN chmod --recursive a+rX /home/one/app/src/orchamp_web/static
+RUN mkdir --parents /home/one/app/config
 USER one
 
-ENV ORCHAMP_CONFIG="/home/one/app/config.toml"
+ENV ORCHAMP_CONFIG="/home/one/app/config"
 
 CMD ["dumb-init", "/home/one/app/.venv/bin/gunicorn", "--bind", "0.0.0.0:8080", "--worker-class", "uvicorn.workers.UvicornWorker", "orchamp_web.app:create()"]

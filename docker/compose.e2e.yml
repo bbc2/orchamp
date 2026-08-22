@@ -16,7 +16,7 @@ services:
     ports:
       - "18080:8080"
     volumes:
-      - ../tests/e2e/docker_config.toml:/home/one/app/config.toml:ro
+      - ../tests/e2e:/home/one/app/config:ro
     environment:
       # Hash of "e2e-test-password" (`$` is doubled to survive variable interpolation)
       - ORCHAMP_BETA_PASSWORD_HASH=$$argon2id$$v=19$$m=65536,t=3,p=1$$qwHOw/8XkXD7sSPRg7Mb0w$$GKjoAeQjhtis5w4+pnGs0AUqmlE0PKnswqftyX8adY0
