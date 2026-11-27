@@ -2,8 +2,8 @@
 High-level analyzer for championship queries.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 from orchamp.models import ChampionshipState, Match, MatchResult, Rules, Scenario
 from orchamp.solver import (
@@ -114,7 +114,7 @@ class Analyzer:
 
         for team in state.teams:
             # Can this team finish first?
-            team_constraints = [
+            team_constraints: list[Constraint] = [
                 *constraints,
                 TeamPositionConstraint(team_id=team.id, max_position=1),
             ]
@@ -146,7 +146,7 @@ class Analyzer:
         """
 
         constraints = [] if allow_forfeits else [NoForfeitConstraint()]
-        all_constraints = [
+        all_constraints: list[Constraint] = [
             *constraints,
             TeamPositionConstraint(
                 team_id=team_id, min_position=position, max_position=position
@@ -175,7 +175,7 @@ class Analyzer:
 
         constraints = [] if allow_forfeits else [NoForfeitConstraint()]
         # Find all scenarios where the team achieves the target position
-        all_constraints = [
+        all_constraints: list[Constraint] = [
             *constraints,
             TeamPositionConstraint(
                 team_id=team_id,

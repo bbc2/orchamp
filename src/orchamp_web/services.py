@@ -8,7 +8,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Generic, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 import httpx2
 
@@ -79,7 +79,7 @@ def _augment_state(
 
 
 @dataclass(frozen=True)
-class Cached(Generic[T]):
+class Cached[T]:
     """
     A value with its content-addressed identity.
 

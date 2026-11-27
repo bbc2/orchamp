@@ -65,7 +65,7 @@ class SolverProtocol(Protocol):
         state: ChampionshipState,
         team_id: str | None = None,
         optimize_position: str | None = None,  # "best" or "worst"
-        constraints: list["Constraint"] | None = None,
+        constraints: list[Constraint] | None = None,
     ) -> Scenario | None:
         """Find a scenario matching the given constraints.
 
@@ -85,7 +85,7 @@ class SolverProtocol(Protocol):
         self,
         rules: Rules,
         state: ChampionshipState,
-        constraints: list["Constraint"] | None = None,
+        constraints: list[Constraint] | None = None,
         limit: int | None = None,
     ) -> list[Scenario]:
         """Find all scenarios matching constraints (up to limit).

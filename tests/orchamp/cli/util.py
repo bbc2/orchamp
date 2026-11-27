@@ -32,7 +32,7 @@ def _run_cli(*args: str, rules: str, state: str) -> dict[str, Any]:
         "1",
         *args,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
     assert result.returncode == 0, f"CLI failed: {result.stderr}"
     return json.loads(result.stdout)
 

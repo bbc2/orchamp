@@ -819,7 +819,7 @@ class CpSatSolver:
                     model.add(outcomes[MatchResult.AWAY_FORFEIT] == 0)
 
             else:
-                raise ValueError(f"Unknown constraint type: {type(constraint)}")
+                raise TypeError(f"Unknown constraint type: {type(constraint)}")
 
     def _extract_scenario(
         self,

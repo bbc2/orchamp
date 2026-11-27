@@ -40,7 +40,7 @@ def e2e_password() -> str:
 @pytest.fixture
 def new_context(
     browser: Browser, e2e_base_url: str, e2e_password: str
-) -> Generator[Callable[..., BrowserContext], None, None]:
+) -> Generator[Callable[..., BrowserContext]]:
     """
     Factory for browser contexts wired to the app's base URL and a live session.
 
@@ -79,7 +79,7 @@ def context(
 
 
 @pytest.fixture
-def page(context: BrowserContext) -> Generator[Page, None, None]:
+def page(context: BrowserContext) -> Generator[Page]:
     page = context.new_page()
     yield page
     page.close()

@@ -104,7 +104,7 @@ class Authenticator:
     throttle: LoginThrottle
 
     @classmethod
-    def from_env(cls) -> "Authenticator":
+    def from_env(cls) -> Authenticator:
         """
         Build an authenticator from environment configuration.
 

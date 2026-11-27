@@ -2,9 +2,10 @@
 Data models for the championship analyzer.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Mapping, Self
+from typing import Self
 
 
 class MatchResult(Enum):
@@ -91,7 +92,7 @@ class Round:
 
     name: str  # e.g. "R01"
     date: str | None  # ISO date, e.g. "2025-10-16"
-    matches: list["Match"]
+    matches: list[Match]
 
 
 @dataclass(frozen=True)
@@ -174,8 +175,8 @@ class ChampionshipState:
 
 def calculate_points_from_completed_matches(
     team_id: str,
-    completed_matches: dict["Match", "CompletedMatch"],
-    rules: "Rules",
+    completed_matches: dict[Match, CompletedMatch],
+    rules: Rules,
 ) -> int:
     """
     Calculate points earned by a team from completed matches.

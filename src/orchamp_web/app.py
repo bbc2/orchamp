@@ -4,10 +4,11 @@ FastAPI web application for standings.
 
 import logging
 import os
-from collections.abc import Callable
+import sys
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any
 
 import httpx2
 from fastapi import FastAPI, Request
@@ -77,7 +78,7 @@ def _load_config() -> AppConfig:
 
     if config_dir is None:
         logger.error("ORCHAMP_CONFIG environment variable is not set")
-        exit(1)
+        sys.exit(1)
 
     assert (
         config_dir is not None
@@ -98,7 +99,7 @@ def create() -> FastAPI:
 
     if log_level is None:
         logger.error("Invalid `ORCHAMP_LOG_LEVEL` value")
-        exit(1)
+        sys.exit(1)
 
     assert (
         log_level is not None
@@ -107,7 +108,7 @@ def create() -> FastAPI:
     config = _load_config()
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         async with httpx2.AsyncClient() as client:
             app.state.http_client = client
             yield

@@ -45,7 +45,7 @@ class AppConfig:
     max_assumptions: int
 
     @classmethod
-    def from_file(cls, config_path: Path) -> "AppConfig":
+    def from_file(cls, config_path: Path) -> AppConfig:
         with config_path.open("rb") as f:
             data = tomllib.load(f)
 

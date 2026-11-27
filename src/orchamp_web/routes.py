@@ -204,7 +204,7 @@ async def web_standings_table(
     config: Annotated[AppConfig, Depends(get_config)],
     service: Annotated[StandingsService, Depends(get_service)],
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
-    a: Annotated[list[str], Query()] = [],
+    a: Annotated[list[str], Query()] = [],  # noqa: B006 (FastAPI copies defaults)
 ) -> HTMLResponse:
     """
     Render the standings table plus the assumptions panel (HTMX target).
@@ -289,7 +289,7 @@ async def web_team_analysis(
     config: Annotated[AppConfig, Depends(get_config)],
     service: Annotated[StandingsService, Depends(get_service)],
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
-    a: Annotated[list[str], Query()] = [],
+    a: Annotated[list[str], Query()] = [],  # noqa: B006 (FastAPI copies defaults)
 ) -> HTMLResponse:
     """
     Render team analysis page.

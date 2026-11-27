@@ -34,8 +34,8 @@ class RankedTeam:
 def _get_match_between(
     t1: str,
     t2: str,
-    completed_matches: dict["Match", "CompletedMatch"],
-) -> tuple["Match", "CompletedMatch"] | None:
+    completed_matches: dict[Match, CompletedMatch],
+) -> tuple[Match, CompletedMatch] | None:
     """Find a completed match between two teams."""
 
     for match, completed in completed_matches.items():
@@ -48,9 +48,9 @@ def _get_match_between(
 
 def _get_points_for_team_in_match(
     team_id: str,
-    match: "Match",
-    completed: "CompletedMatch",
-    rules: "Rules",
+    match: Match,
+    completed: CompletedMatch,
+    rules: Rules,
 ) -> int:
     """Get points earned by a team in a specific match."""
 
@@ -83,8 +83,8 @@ def _get_points_for_team_in_match(
 
 def _get_game_points_for_team_in_match(
     team_id: str,
-    match: "Match",
-    completed: "CompletedMatch",
+    match: Match,
+    completed: CompletedMatch,
 ) -> tuple[int, int]:
     """
     Get game points (won, lost) for a team in a match.
@@ -103,8 +103,8 @@ def _get_game_points_for_team_in_match(
 
 def _compute_mini_league_stats(
     team_ids: list[str],
-    completed_matches: dict["Match", "CompletedMatch"],
-    rules: "Rules",
+    completed_matches: dict[Match, CompletedMatch],
+    rules: Rules,
 ) -> dict[str, tuple[int, int, int]]:
     """
     Compute mini-league stats for a group of tied teams.
@@ -148,8 +148,8 @@ def _game_point_quotient(won: int, lost: int) -> float:
 
 def _rank_tied_group(
     team_ids: list[str],
-    completed_matches: dict["Match", "CompletedMatch"],
-    rules: "Rules",
+    completed_matches: dict[Match, CompletedMatch],
+    rules: Rules,
     depth: int = 0,
 ) -> list[str]:
     """
@@ -210,8 +210,8 @@ def _rank_tied_group(
 
 
 def compute_rankings(
-    state: "ChampionshipState",
-    rules: "Rules",
+    state: ChampionshipState,
+    rules: Rules,
 ) -> list[RankedTeam]:
     """
     Compute full rankings with tiebreakers applied.

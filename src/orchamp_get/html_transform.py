@@ -32,7 +32,7 @@ _ATTRS_TO_REMOVE = ["href", "title", "style"]
 
 def _remove_attributes(soup: BeautifulSoup, attrs: list[str]) -> None:
     for attr in attrs:
-        for tag in soup.find_all(attrs={attr: True}):
+        for tag in soup.find_all(True, attrs={attr: True}):
             del tag[attr]
 
 
