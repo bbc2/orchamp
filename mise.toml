@@ -1,0 +1,7 @@
+[env]
+_.path = ["node_modules/.bin"]
+_.python.venv = {path = ".venv", create = true}
+
+[tools]
+bun = "latest"
+python = "3.14"
